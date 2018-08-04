@@ -1,0 +1,146 @@
+1                    J E S 2  J O B  L O G  --  S Y S T E M  S 0 W 1  --  N O D E  Z O S K C T R         
+0 
+ 21.35.12 JOB08681 ---- TUESDAY,   26 JUN 2018 ----
+ 21.35.12 JOB08681  IRR010I  USERID KC03F22  IS ASSIGNED TO THIS JOB.
+ 21.35.12 JOB08681  ICH70001I KC03F22  LAST ACCESS AT 21:24:16 ON TUESDAY, JUNE 26, 2018
+ 21.35.12 JOB08681  $HASP373 KC03F22A STARTED - INIT 2    - CLASS A        - SYS S0W1
+ 21.35.12 JOB08681  -                                         --TIMINGS (MINS.)--            ----PAGING COUNTS---
+ 21.35.12 JOB08681  -JOBNAME  STEPNAME PROCSTEP    RC   EXCP    TCB    SRB  CLOCK   SERV  PG   PAGE   SWAP    VIO SWAPS
+ 21.35.12 JOB08681  -KC03F22A                      00     47 ******    .00     .0    123   0      0      0      0     0
+ 21.35.12 JOB08681  -KC03F22A ENDED.  NAME-KEVIN KANG           TOTAL TCB CPU TIME=   .00  TOTAL ELAPSED TIME=    .0
+ 21.35.12 JOB08681  $HASP395 KC03F22A ENDED
+0------ JES2 JOB STATISTICS ------
+-  26 JUN 2018 JOB EXECUTION DATE
+-           94 CARDS READ
+-          146 SYSOUT PRINT RECORDS
+-            0 SYSOUT PUNCH RECORDS
+-           15 SYSOUT SPOOL KBYTES
+-         0.00 MINUTES EXECUTION TIME
+         1 //KC03F22A JOB ,'KEVIN KANG',MSGCLASS=H                                 JOB08681
+         2 //STEP1 EXEC PGM=ASSIST                                                 00011000
+         3 //STEPLIB DD DSN=KC02293.ASSIST.LOADLIB,DISP=SHR                        00012000
+         4 //SYSPRINT DD SYSOUT=*                                                  00013000
+         5 //SYSIN DD *                                                            00014000
+         6 //FT05F001   DD  *                                                      00121001
+         7 //FT06F001   DD SYSOUT=*                                                00129901
+ ICH70001I KC03F22  LAST ACCESS AT 21:24:16 ON TUESDAY, JUNE 26, 2018
+ IEF236I ALLOC. FOR KC03F22A STEP1
+ IGD103I SMS ALLOCATED TO DDNAME STEPLIB
+ IEF237I JES2 ALLOCATED TO SYSPRINT
+ IEF237I JES2 ALLOCATED TO SYSIN
+ IEF237I JES2 ALLOCATED TO FT05F001
+ IEF237I JES2 ALLOCATED TO FT06F001
+ IEF142I KC03F22A STEP1 - STEP WAS EXECUTED - COND CODE 0000
+ IGD104I KC02293.ASSIST.LOADLIB                       RETAINED,  DDNAME=STEPLIB 
+ IEF285I   KC03F22.KC03F22A.JOB08681.D0000103.?         SYSOUT        
+ IEF285I   KC03F22.KC03F22A.JOB08681.D0000101.?         SYSIN         
+ IEF285I   KC03F22.KC03F22A.JOB08681.D0000102.?         SYSIN         
+ IEF285I   KC03F22.KC03F22A.JOB08681.D0000104.?         SYSOUT        
+ IEF373I STEP/STEP1   /START 2018177.2135
+ IEF032I STEP/STEP1   /STOP  2018177.2135 
+         CPU:     0 HR  00 MIN  00.00 SEC    SRB:     0 HR  00 MIN  00.00 SEC    
+         VIRT:   584K  SYS:   268K  EXT:        0K  SYS:    13076K
+         ATB- REAL:                     0K  SLOTS:                     0K
+              VIRT- ALLOC:       0M SHRD:       0M
+ IEF375I  JOB/KC03F22A/START 2018177.2135
+ IEF033I  JOB/KC03F22A/STOP  2018177.2135 
+         CPU:     0 HR  00 MIN  00.00 SEC    SRB:     0 HR  00 MIN  00.00 SEC    
+1*** ASSIST 4.0/A2-05/15/82  470/V7A/0:OS/VS2  INS=SDFP7/X=BGHO, CHECK/TRC/=1180, OPTS=CDKMPR FROM PENN ST*NIU COMPSCI*LT         
+0                                                                                                                                 
+0                                                                                                               PAGE    1         
+0  LOC  OBJECT CODE    ADDR1 ADDR2  STMT   SOURCE STATEMENT                                                                       
+                                       1 ************************************************                        00015000         
+                                       2 *ASSIGN2                                                                00020000         
+                                       3 *                                                                       00030000         
+                                       4 *NAME: KEVIN KANG                                                       00040000         
+                                       5 *                                                                       00050000         
+                                       6 *REGISTER USAGE                                                         00060000         
+                                       7 *                                                                       00070000         
+                                       8 *  1    USED FOR ADDRESS STORAGE AFTER XDECI                            00071031         
+                                       9 *  2    RECORDS NUMBER OF LINES PROCESSED                               00072031         
+                                      10 *  3    HOLDS TOTAL SUM                                                 00073031         
+                                      11 *  4    HOLDS RESULT FROM A SINGLE LINE                                 00074031         
+                                      12 *  5    HOLDS FIRST VAL,  W                                             00075031         
+                                      13 *  6    HOLDS SECOND VAL, X                                             00076031         
+                                      14 *  7    HOLDS THIRD VAL,  Y                                             00077031         
+                                      15 *  8    HOLDS FOURTH VAL, Z                                             00078031         
+                                      16 * 15    BASE REGISTER                                                   00079031         
+                                      17 *                                                                       00079131         
+                                      18 ************************************************                        00080000         
+ 000000                               19 MAIN     CSECT                                                          00081000         
+ 000000                               20          USING MAIN,15          ESTABLISH BASE REGISTER                 00082028         
+ 000000 1B22                          21          SR    2,2              CLEARS REG 2 FOR NUM LINES              00083028         
+ 000002 1B33                          22          SR    3,3              CLEARS REG 3 FOR TOTAL SUM              00085031         
+ 000004 E000 F05C 0050 0005C          23 LOOP     XREAD BUFFER,80        READS A LINE, START OF LOOP             00090031         
+ 00000A 4740 F04C            0004C    24          BC    B'0100',LOOPEND  LOOKS FOR EOF CC                        00090128         
+ 00000E 5A20 F168            00168    25          A     2,=F'1'                                                  00090225         
+ 000012 1B44                          26          SR    4,4              CLEARS REG 4 FOR RESULT                 00090331         
+ 000014 5350 F05C            0005C    27          XDECI 5,BUFFER         GETS FIRST NUM FROM BUFFER              00090428         
+ 000018 5361 0000            00000    28          XDECI 6,0(1)           GETS SECONL NUM USING REG 1 ADDR        00090528         
+ 00001C 5371 0000            00000    29          XDECI 7,0(1)           GETS THIRD NUM                          00090628         
+ 000020 5381 0000            00000    30          XDECI 8,0(1)           GETS FOURTH NUM                         00090728         
+ 000024 1A45                          31          AR    4,5              CALCULATE RESULT W-X+Y-Z IN REG 4       00090831         
+ 000026 1B46                          32          SR    4,6                                                      00090916         
+ 000028 1A47                          33          AR    4,7                                                      00091016         
+ 00002A 1B48                          34          SR    4,8                                                      00091116         
+ 00002C 1A34                          35          AR    3,4              ADD RESULT TO TOTAL IN REG 3            00091231         
+ 00002E 5250 F0B1            000B1    36          XDECO 5,W              CONVERT TO PRINTABLE FORM IN MEMORY     00091331         
+ 000032 5260 F0C9            000C9    37          XDECO 6,X                                                      00091415         
+ 000036 5270 F0E1            000E1    38          XDECO 7,Y                                                      00091515         
+ 00003A 5280 F0F9            000F9    39          XDECO 8,Z                                                      00091615         
+ 00003E 5240 F115            00115    40          XDECO 4,RESULT                                                 00091715         
+ 000042 E020 F0AC 0075 000AC          41          XPRNT OUTLINE,117      PRINTS LINE                             00091831         
+ 000048 47F0 F004            00004    42          B     LOOP             GOES UP TO LOOP                         00091931         
+ 00004C 5230 F157            00157    43 LOOPEND  XDECO 3,SUMRES         END OF LOOP                             00092031         
+ 000050 5220 F133            00133    44          XDECO 2,LINES          CONVERTS NUM LINES TO PRINT FORM        00092131         
+ 000054 E020 F121 0042 00121          45          XPRNT TOTALS,66        PRINTS LAST LINE, OF TOTALS             00092231         
+ 00005A 07FE                          46          BR    14                                                       00100000         
+ 00005C                               47 BUFFER   DS    80C              BUFFER THAT HOLDS EACH LINE             00101031         
+ 0000AC 40                            48 OUTLINE  DC    C' '             START OF LINE FORMAT                    00102031         
+ 0000AD E6407E40                      49          DC    CL4'W = '                                                00103017         
+                                      50 *        DC    9C' '                                                    00104013         
+ 0000B1                               51 W        DS    12C                                                      00105013         
+ 0000BD 4040404040404040              52          DC    8C' '                                                    00106013         
+1                                                                                                               PAGE    2         
+0  LOC  OBJECT CODE    ADDR1 ADDR2  STMT   SOURCE STATEMENT                                                                       
+ 0000C5 E7407E40                      53          DC    CL4'X = '                                                00107017         
+ 0000C9                               54 X        DS    12C                                                      00108015         
+ 0000D5 4040404040404040              55          DC    8C' '                                                    00109015         
+ 0000DD E8407E40                      56          DC    CL4'Y = '                                                00109117         
+ 0000E1                               57 Y        DS    12C                                                      00109215         
+ 0000ED 4040404040404040              58          DC    8C' '                                                    00109315         
+ 0000F5 E9407E40                      59          DC    CL4'Z = '                                                00109417         
+ 0000F9                               60 Z        DS    12C                                                      00109515         
+ 000105 4040404040404040              61          DC    8C' '                                                    00109615         
+ 00010D D9C5E2E4D3E3407E              62          DC    CL8'RESULT ='                                            00109715         
+ 000115                               63 RESULT   DS    12C              W-X+Y-Z OF A LINE                       00109831         
+ 000121 F0                            64 TOTALS   DC    C'0'             START OF TOTALS LINE FORMAT             00109931         
+ 000122 D5E4D4C2C5D940D6              65          DC    CL17'NUMBER OF LINES ='                                  00110025         
+ 000133                               66 LINES    DS    12C                                                      00110125         
+ 00013F 4040404040404040              67          DC    8C' '                                                    00110225         
+ 000147 E2E4D440D6C640D9              68          DC    CL16'SUM OF RESULTS ='                                   00110327         
+ 000157                               69 SUMRES   DS    12C                                                      00110425         
+                                      70          END   MAIN                                                     00111000         
+ 000168 00000001                      71                =F'1'                                                                     
+0***  NO   STATEMENTS FLAGGED -  NO   WARNINGS,  NO   ERRORS                                                                      
+0*** DYNAMIC CORE AREA USED:  LOW:    3380 HIGH:     560 LEAVING:  489628 FREE BYTES. AVERAGE:       54 BYTES/STMT ***            
+0*** ASSEMBLY TIME =    0.000 SECS,    72000 STATEMENTS/SEC ***                                                                   
+0*** PROGRAM EXECUTION BEGINNING - ANY OUTPUT BEFORE EXECUTION TIME MESSAGE IS PRODUCED BY USER PROGRAM ***                       
+ W =            6        X =            1        Y =            2        Z =            4        RESULT =           3             
+ W =         9991        X =         9972        Y =         9908        Z =         9926        RESULT =           1             
+ W =         4500        X =         -230        Y =            9        Z =           58        RESULT =        4681             
+ W =            0        X =            7        Y =            2        Z =          -45        RESULT =          40             
+ W =         8516        X =         2853        Y =            0        Z =           17        RESULT =        5646             
+ W =           20        X =            0        Y =         3245        Z =          316        RESULT =        2949             
+ W =         5529        X =         6977        Y =         1681        Z =            0        RESULT =         233             
+ W =         1013        X =          250        Y =           85        Z =          831        RESULT =          17             
+ W =            0        X =         3364        Y =         5275        Z =            0        RESULT =        1911             
+ W =         -887        X =         1100        Y =         2293        Z =         -993        RESULT =        1299             
+ W =         1234        X =         4447        Y =         8591        Z =           13        RESULT =        5365             
+ W =          -89        X =           -7        Y =           23        Z =         -104        RESULT =          45             
+ W =         8513        X =         5409        Y =         2538        Z =         1001        RESULT =        4641             
+ W =            1        X =            2        Y =            3        Z =            4        RESULT =          -2             
+ W =         9999        X =         9998        Y =         9997        Z =         9996        RESULT =           2             
+0NUMBER OF LINES =          15        SUM OF RESULTS =       26831                                                                
+0*** EXECUTION TIME =    0.000 SECS.       308 INSTRUCTIONS EXECUTED -   308000 INSTRUCTIONS/SEC ***                              
+0*** AM004 - NORMAL USER TERMINATION BY RETURN ***                                                                                

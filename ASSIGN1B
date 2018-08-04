@@ -1,0 +1,40 @@
+//KC03F22B JOB ,'KEVIN KANG',MSGCLASS=H                                 00010000
+//STEP1 EXEC PGM=ASSIST                                                 00020000
+//STEPLIB DD DSN=KC02293.ASSIST.LOADLIB,DISP=SHR                        00030000
+//SYSPRINT DD SYSOUT=*                                                  00040000
+//SYSIN DD *                                                            00050000
+************************************************                        00060000
+*ASSIGN1B                                                               00070002
+*                                                                       00080000
+*NAME: KEVIN KANG                                                       00090000
+*                                                                       00100000
+*REGISIER USAGE                                                         00110000
+*                                                                       00120000
+*  2    LEFT 169                                                        00130000
+*  3    RIGHT 74                                                        00140000
+*  5    DIFF                                                            00141004
+*  6    SUM                                                             00142004
+* 15    BASE REGISTER                                                   00150000
+*                                                                       00160000
+* FUNCTION: PRACTICE WITH REGISTERS AND ASSEMBLY                        00161003
+*                                                                       00162003
+************************************************                        00170000
+MAIN     CSECT                                                          00180000
+         USING MAIN,15     ESTABLISH BASE REGISTER                      00190001
+         L     2,LEFT      LOAD LEFT INTO REG 2 FOR DIFF                00200004
+         L     3,RIGHT     LOAD RIGHT INTO REG 3 FOR DIFF               00201004
+         L     5,LEFT      LOAD LEFT INTO REG 5 FOR SUM                 00201104
+         L     6,RIGHT     LOAD RIGHT INTO REG 6 FOR SUM                00201204
+         SR    2,3         SUBTRACT RIGHT FROM LEFT                     00202001
+         ST    2,DIFF      STORE DIFFERENCE                             00202101
+         AR    6,5         ADD LEFT TO RIGHT                            00203004
+         ST    6,SUM       STORE SUM                                    00204004
+         XDUMP LEFT,8      DUMP SUM AND DIFF                            00220001
+         BR    14                                                       00230000
+LEFT     DC    F'169'      DECLARE LEFT AS 169                          00231001
+RIGHT    DC    F'74'       DECLARE RIGHT AS 74                          00232001
+DIFF     DS    F           DECLARE DIFF                                 00233001
+SUM      DS    F           DECLARE SUM                                  00234001
+         END   MAIN                                                     00240000
+/*                                                                      00250000
+//                                                                      00260000

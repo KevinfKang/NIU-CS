@@ -1,0 +1,95 @@
+//KC03F22A JOB ,'KEVIN KANG',MSGCLASS=H                                 00010000
+//STEP1 EXEC PGM=ASSIST                                                 00011000
+//STEPLIB DD DSN=KC02293.ASSIST.LOADLIB,DISP=SHR                        00012000
+//SYSPRINT DD SYSOUT=*                                                  00013000
+//SYSIN DD *                                                            00014000
+************************************************                        00015000
+*ASSIGN2                                                                00020000
+*                                                                       00030000
+*NAME: KEVIN KANG                                                       00040000
+*                                                                       00050000
+*REGISTER USAGE                                                         00060000
+*                                                                       00070000
+*  1    USED FOR ADDRESS STORAGE AFTER XDECI                            00071031
+*  2    RECORDS NUMBER OF LINES PROCESSED                               00072031
+*  3    HOLDS TOTAL SUM                                                 00073031
+*  4    HOLDS RESULT FROM A SINGLE LINE                                 00074031
+*  5    HOLDS FIRST VAL,  W                                             00075031
+*  6    HOLDS SECOND VAL, X                                             00076031
+*  7    HOLDS THIRD VAL,  Y                                             00077031
+*  8    HOLDS FOURTH VAL, Z                                             00078031
+* 15    BASE REGISTER                                                   00079031
+*                                                                       00079131
+************************************************                        00080000
+MAIN     CSECT                                                          00081000
+         USING MAIN,15          ESTABLISH BASE REGISTER                 00082028
+         SR    2,2              CLEARS REG 2 FOR NUM LINES              00083028
+         SR    3,3              CLEARS REG 3 FOR TOTAL SUM              00085031
+LOOP     XREAD BUFFER,80        READS A LINE, START OF LOOP             00090031
+         BC    B'0100',LOOPEND  LOOKS FOR EOF CC                        00090128
+         A     2,=F'1'                                                  00090225
+         SR    4,4              CLEARS REG 4 FOR RESULT                 00090331
+         XDECI 5,BUFFER         GETS FIRST NUM FROM BUFFER              00090428
+         XDECI 6,0(1)           GETS SECONL NUM USING REG 1 ADDR        00090528
+         XDECI 7,0(1)           GETS THIRD NUM                          00090628
+         XDECI 8,0(1)           GETS FOURTH NUM                         00090728
+         AR    4,5              CALCULATE RESULT W-X+Y-Z IN REG 4       00090831
+         SR    4,6                                                      00090916
+         AR    4,7                                                      00091016
+         SR    4,8                                                      00091116
+         AR    3,4              ADD RESULT TO TOTAL IN REG 3            00091231
+         XDECO 5,W              CONVERT TO PRINTABLE FORM IN MEMORY     00091331
+         XDECO 6,X                                                      00091415
+         XDECO 7,Y                                                      00091515
+         XDECO 8,Z                                                      00091615
+         XDECO 4,RESULT                                                 00091715
+         XPRNT OUTLINE,117      PRINTS LINE                             00091831
+         B     LOOP             GOES UP TO LOOP                         00091931
+LOOPEND  XDECO 3,SUMRES         END OF LOOP                             00092031
+         XDECO 2,LINES          CONVERTS NUM LINES TO PRINT FORM        00092131
+         XPRNT TOTALS,66        PRINTS LAST LINE, OF TOTALS             00092231
+         BR    14                                                       00100000
+BUFFER   DS    80C              BUFFER THAT HOLDS EACH LINE             00101031
+OUTLINE  DC    C' '             START OF LINE FORMAT                    00102031
+         DC    CL4'W = '                                                00103017
+*        DC    9C' '                                                    00104013
+W        DS    12C                                                      00105013
+         DC    8C' '                                                    00106013
+         DC    CL4'X = '                                                00107017
+X        DS    12C                                                      00108015
+         DC    8C' '                                                    00109015
+         DC    CL4'Y = '                                                00109117
+Y        DS    12C                                                      00109215
+         DC    8C' '                                                    00109315
+         DC    CL4'Z = '                                                00109417
+Z        DS    12C                                                      00109515
+         DC    8C' '                                                    00109615
+         DC    CL8'RESULT ='                                            00109715
+RESULT   DS    12C              W-X+Y-Z OF A LINE                       00109831
+TOTALS   DC    C'0'             START OF TOTALS LINE FORMAT             00109931
+         DC    CL17'NUMBER OF LINES ='                                  00110025
+LINES    DS    12C                                                      00110125
+         DC    8C' '                                                    00110225
+         DC    CL16'SUM OF RESULTS ='                                   00110327
+SUMRES   DS    12C                                                      00110425
+         END   MAIN                                                     00111000
+/*                                                                      00120000
+//FT05F001   DD  *                                                      00121001
+    0006   0001   0002   0004                                           00122001
+    9991   9972   9908   9926                                           00123001
+    4500   -230      9     58                                           00124001
+       0     +7      2    -45                                           00125001
+    8516   2853      0     17                                           00126001
+    0020      0   3245    316                                           00127001
+    5529   6977   1681      0                                           00128001
+    1013    250     85    831                                           00129001
+       0   3364   5275      0                                           00129101
+    -887   1100   2293   -993                                           00129201
+    1234   4447   8591     13                                           00129301
+     -89     -7     23   -104                                           00129401
+    8513   5409   2538   1001                                           00129501
+    0001   0002   0003   0004                                           00129601
+    9999   9998   9997   9996                                           00129701
+/*                                                                      00129801
+//FT06F001   DD SYSOUT=*                                                00129901
+//                                                                      00130001

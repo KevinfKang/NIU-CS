@@ -1,0 +1,49 @@
+//Written Assignment 2 - CS360 Summer 2018
+//Kevin Kang - KC03F22 - z1837081
+//Due July 5, Thurs
+
+  1. (2 points) Did this error occur (a) while the program was being assembled or (b) when it was being run?
+When it was run, it was assembled successfully and ran unsuccessfully.
+
+  2. (2 points) What is the address of the next instruction which will be executed?
+FFC50006 A000|0016| = 000016
+
+  3. (2 points) What is the value of the condition code at the time of the ABEND?
+FFC50006 |A|0000016 => A = B'1010', 10|10| => B'10' = CC = 2
+
+  4. (2 points) What is the length of the instruction that caused the ABEND (a number of bytes)?
+FFC50006 |A|0000016 => A = B'1010', |10|10 => B'10' = Instruction length code = 2 halfwords = 4 bytes
+
+  5. (2 points) What is the address of the instruction that caused the abend?
+000012
+
+  6. (2 points) What type of error occurred (number and name)?
+0006 - S0C6 - Specification Exception
+
+  7. (2 points) What actually causes this error?
+An address resolved to a value that is not on the kind of boundary needed, like a fullword starting on a non-multiple of 4 or half-word on a non-multiple of 2.
+It's trying to store a full word on 0(6,5) which is address X'00000030' plus 6 and X'00000036' is not a multiple of 4.
+
+  8. (3 points) Correct the error by rewriting the section of code that caused it. (The sum should be stored in THIRD.) (There are several correct ways to do this.)
+ST    3,0(0,5)     STORE THE RESULT 
+
+  9. (2 points) At the time of the ABEND, what is the value of register 3 in decimal?
+X'131' -> D'305'
+
+ 10. (2 points) What does the value in register 3 represent at the time of the ABEND?
+The sum of First and Second
+
+ 11. (3 points) Why is the address (LOC column) of the storage area with the label TWO on it at X'000024' when the DC statement whose address is X'000020' only takes up 2 bytes?
+Full words need to be on an adderss thats a multiple of 4 and will skip some bytes to do so, making slack bytes 
+
+ 12. (2 points) What are the contents of the two bytes of user storage starting at address X'000022'? What do they represent?
+They dont represent anything, they are slack bytes, so they are empty
+ 
+ 13. (1 point) Why do we not have XDUMP output? 
+The program breaks before reaching the XDUMP so it does not run
+ 
+ 14. (2 points) How many bytes are taken up by the XDUMP pseudo-instruction?
+12, XDUMP is 12, confirmed as XDUMP is on 00000016 and the next is 0000001c  
+
+ 15. (1 point) If we correct the error, what should be the value of the condition code at the end of the program (when we reach the BCR line)?
+1000

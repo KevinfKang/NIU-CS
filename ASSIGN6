@@ -1,0 +1,299 @@
+//KC03F22A JOB ,'KEVIN KANG',MSGCLASS=H                                 00010000
+//STEP1 EXEC PGM=ASSIST                                                 00011000
+//STEPLIB DD DSN=KC02293.ASSIST.LOADLIB,DISP=SHR                        00012000
+//SYSPRINT DD SYSOUT=*                                                  00013000
+//SYSIN DD *                                                            00014000
+************************************************                        00015000
+*ASSIGN6                                                                00020099
+*                                                                       00030000
+*NAME: KEVIN KANG                                                       00040000
+*                                                                       00050000
+*REGISTER USAGE                                                         00060000
+*                                                                       00070000
+*  1    ADDRESS OF PRAMETER LIST FOR SUBROUTINES                        00071099
+* 12    BASE REGISTER                                                   00079099
+* 13    ADDRESS OF LOCAL SAVE DATA                                      00079199
+* 14    ADDRESS FOR RETURNING TO CALLING                                00079299
+* 15    ADDRESS OF SUBROUTINE ITSELF                                    00079399
+************************************************                        00080000
+MAIN     CSECT                                                          00081000
+         STM   14,12,12(13)     SAVES ALL THE REGISTERS EXCEPT 13       00081199
+         LR    12,15            PUTS THE ADDRESS OF MAIN IN REG 12      00081299
+         USING MAIN,12          SETS 12 AS THE BASE REGISTER            00081399
+         LA    14,MAINSAVE      POINTS REG 14 TO AN AREA IN BUILD MEM   00081499
+         ST    13,4(,14)        SETS UP BACKWARD POINTER                00081599
+         ST    14,8(,13)        SETS UP FORWARD POINTER                 00081699
+         LR    13,14            POINTS 13-14 IN CASE ANOTHER FUNCTION   00081799
+         LA    1,BLIST          LOADING PARAMETER LIST FOR BUILD        00083099
+         L     15,=V(BUILD)     MAKES VIRTUAL                           00085099
+         BALR  14,15            GO TO BUILD SUBROUTINE                  00090083
+         LA    1,PLIST          LOADING PARAMETER LIST FOR PRINT        00090399
+         L     15,=V(PRINT)     MAKE VIRTUAL                            00090499
+         BALR  14,15            GO TO PRINT SUBROUTINE                  00090599
+         LA    1,TLIST          LOADING PARAMETER LIST FOR TALLY        00090699
+         L     15,=V(TALLY)     MAKE VIRTUAL                            00090799
+         BALR  14,15            GO TO PRINT SUBROUTINE                  00090899
+***********RESTORING ORIGINAL REGS AND EXITING***********               00093799
+         L     13,4(13)         LOAD OLD REG FROM SAVE AREA             00093899
+         LM    14,12,12(13)     RELOAD REGISTERS                        00093999
+         BR    14               END PROGRAM                             00094049
+         LTORG                                                          00094176
+MAINSAVE DS    18F              MAIN REG SAVER                          00094299
+BUFFER   DS    80C              INPUT BUFFER                            00094499
+COUNT    DS    PL2              COUNT OF CLIENTS                        00095299
+BLIST    DC    A(BUFFER,TABLE,EOT,COUNT)  BUILD PARAM LIST              00095399
+PLIST    DC    A(TABLE,EOT)               PRINT PARAM LIST              00095499
+TLIST    DC    A(TABLE,EOT,COUNT)         TALLY PARAM LIST              00095599
+EOT      DC    A(ENDTABLE)      EOT ADDRESS                             00095699
+         ORG   MAIN+(*-MAIN+15)/16*16    PUTS ON 16BYTE BOUNDARY        00095799
+TABLE    DS    70CL48           TABLE OF 48 BYTE ENTRIES                00095899
+ENDTABLE DS    0H                                                       00095999
+*************** BUILD SUBROUTINE ***************                        00096071
+*  BUILDS TABLE FROM DATA                                               00096171
+*                                                                       00096271
+*  REGISTER USAGE                                                       00096371
+*   1  ADDRESS OF PARAMETER LIST A(BUFFER,TABLE,NEXTMEM)                00096499
+*        ADDRESS OF WHERE TO PUT $ WHEN EDITING OUT                     00096599
+*   2  ADDRESS OF BUFFER                                                00096699
+*   3  ADDRESS OF TABLE                                                 00096799
+*   4  ADDRESS OF EOT                                                   00096899
+*   5  ADDRESS OF PACKED COUNT                                          00096999
+*  12  BASE REGISTER                                                    00097099
+*  13  ADDRESS OF LOCAL SAVE DATA                                       00097199
+*  14  ADDRESS FOR RETURNING TO CALLING                                 00097299
+*  15  ADDRESS OF SUBROUTINE ITSELF                                     00097399
+************************************************                        00097472
+BUILD    CSECT                                                          00097583
+         STM   14,12,12(13)     SAVES ALL THE REGISTERS EXCEPT 13       00097699
+         LR    12,15            PUTS THE ADDRESS OF BUILD IN REG 12     00097799
+         USING BUILD,12         SETS 12 AS THE BASE REGISTER            00097899
+         LA    14,BLDSAVE       POINTS REG 14 TO AN AREA IN BUILD MEM   00097999
+         ST    13,4(14)         SETS UP BACKWARD POINTER                00098099
+         ST    14,8(13)         SETS UP FORWARD POINTER                 00098199
+         LR    13,14            POINTS 13-14 IN CASE ANOTHER FUNCTION   00098299
+         LM    2,5,0(1)         LOAD THE PARAMETER LIST                 00098399
+READLOOP XREAD 0(2),80          READ LINE INTO BUFFER                   00098599
+         BC    B'0100',READEND  EOF                                     00098699
+         MVC   0(10,3),0(2)     MOVE FIRST NAME                         00098799
+         MVC   10(10,3),12(2)   MOVE LAST NAME                          00098899
+         MVC   20(9,3),34(2)    MOVE ID NUM                             00098999
+         MVC   29(8,3),24(2)    MOVE PASSWORD                           00099099
+         PACK  37(5,3),55(7,2)  MOVE BALANCE AS PACKED                  00099199
+         PACK  42(5,3),45(8,2)  MOVE EXPIRATION DATE AS PACKED          00099299
+         A     3,=F'48'         INCREMENT TABLE POINTER                 00099399
+         AP    COUNT1(2),=P'1'  INCREMENT CLIENT COUNT                  00099499
+         B     READLOOP         READ NEXT TLINE                         00099599
+READEND  ST    3,0(4)           STORE EOT ADDRESS                       00099699
+         MVC   0(2,5),COUNT1    STORE COUNT INTO MAIN MEMORY            00099799
+         L     13,4(13)         LOAD OLD REG FROM SAVE AREA             00099999
+         LM    14,12,12(13)     RELOAD REGISTERS                        00100099
+         BR    14               FINISH SUBROUTINE RETURN MAIN CODE      00100199
+         LTORG                                                          00100299
+BLDSAVE  DS    18F              BUILD REG SAVE AREA                     00101099
+COUNT1   DC    PL2'0'           PACKED COUNT TEMPORARY STORAGE          00101199
+*************** PRINT SUBROUTINE ***************                        00101472
+*  PRINTS ALL FORMATTED DATA IN A TABLE 20 RECORDS PER PAGE             00101599
+*                                                                       00101672
+*  REGISTER USAGE                                                       00101772
+*   1  ADDRESS OF PARAMETER LIST A(TABLE,EOT)                           00101899
+*   2  ADDRESS OF TABLE                                                 00101972
+*   3  ADDRESS OF EOT                                                   00102099
+*   4  LINE COUNTER FOR 1 PAGE                                          00102199
+*  12  BASE REGISTER                                                    00102499
+*  13  ADDRESS OF LOCAL SAVE DATA                                       00102599
+*  14  ADDRESS FOR RETURNING TO CALLING                                 00102699
+*  15  ADDRESS OF SUBROUTINE ITSELF                                     00102799
+************************************************                        00102872
+PRINT    CSECT                                                          00102997
+         STM   14,12,12(13)     SAVES ALL THE REGISTERS EXCEPT 13       00103099
+         LR    12,15            PUTS THE ADDRESS OF PRINT IN REG 12     00103199
+         USING PRINT,12         SETS 12 AS THE BASE REGISTER            00103299
+         LA    14,PRNTSAVE      POINTS REG 14 TO AN AREA IN BUILD MEM   00103399
+         ST    13,4(,14)        SETS UP BACKWARD POINTER                00103499
+         ST    14,8(,13)        SETS UP FORWARD POINTER                 00103599
+         LR    13,14            POINTS 13-14 IN CASE ANOTHER FUNCTION   00103699
+         LM    2,3,0(1)         LOAD PARAMTER LIST                      00103799
+         L     3,0(3)           LOAD EOT ADDRESS INTO 3                 00103899
+PAGELOOP SR    4,4              RESET LINE COUNTER                      00104099
+         UNPK  PAGENUM(2),PACKNUM(2)     STORE PAGE NUM FOR PRINTING    00104199
+         XPRNT PAGETITL,121              PRINT TITLE                    00104399
+         XPRNT LABELS,121                PRINT LABELS                   00104499
+         XPRNT UNDRLINE,121              PRINT UNDERLINES               00104599
+LINELOOP CR    2,3              CHECK IF END OF TABLE                   00104699
+         BE    LINEEND          IF YES GO PRINT PAGE                    00104799
+         C     4,=F'20'         CHECK IF PAGE IS FULL                   00104899
+         BE    LINEEND                                                  00104999
+         MVC   FIRST(10),0(2)   COPY FIRST NAME TO LINE                 00105099
+         MVC   LAST(10),10(2)   COPY LAST NAME TO LINE                  00105199
+         LA    1,BALANCE+9      LOAD DEFAULT $ PLACEMENT                00105299
+         MVC   BALANCE(16),=X'40206B2020206B2021204B202040C3D9'         00105399
+         EDMK  BALANCE(16),37(2)    STORE PACKED BALANCE FOR PRINT      00105499
+         BCTR  1,0                                                      00105599
+         MVI   0(1),C'$'        PLACE '$'                               00105699
+         MVC   PASSWORD(8),29(2)   STORE PASS FOR PRINT                 00105799
+         MVC   DATE(12),=X'402020202020612020612020'                    00105899
+         ED    DATE(12),42(2)   STORE DATE                              00105999
+         MVC   IDNUM(9),20(2)   STORE ID NUM                            00106099
+         A     2,=F'48'         INCREMENT TABLE POINTER                 00106199
+         A     4,=F'1'          INCREMENT LINE COUNTER                  00106299
+         XPRNT LINE,121         PRINT A LINE                            00106399
+         MVI   LINE+1,C' '          BLANK OUT LINE WITH SPACES          00106499
+         MVC   LINE+2(119),LINE+1                                       00106599
+         B     LINELOOP         CONTINUE LOOP FOR NEW LINE              00106799
+LINEEND  CR    2,3              CHECK IF EOT                            00106899
+         BE    PAGELEND         IF END OF TABLE END LINE                00106999
+         AP    PACKNUM(2),PACKED1(2)   INCREMENT PAGE NUM               00107099
+         XPRNT =C' ',1          PRINT BLANK LINE                        00107199
+         B     PAGELOOP         GO UP TO MAKE NEXT LINE                 00107299
+PAGELEND L     13,4(13)         LOAD OLD REG FROM SAVE AREA             00107599
+         LM    14,12,12(13)     RELOAD REGISTERS                        00107699
+         BR    14               FINISH SUBROUTINE RETURN MAIN CODE      00107797
+         LTORG                                                          00107876
+PRNTSAVE DS    18F              FOR SOME REASON WHEN I ADD PACK IT TURN 00107999
+PACKNUM  DC    X'010F'   PAGE   INTO 2C AND WHEN I UNPACK IT BECOMES    00108099
+PACKED1  DC    X'010F'    NUM    C2 AND PRINTING INTO 'B' THIS WAY ITS  00108199
+PAGETITL DC    C'1'               F2C0 AND I JUST GRAB THE F2           00108299
+         DC    45C' '                                                   00108399
+         DC    CL29'FAMILIAR NAMES -- CLIENT LIST'                      00108499
+         DC    38C' '                                                   00108599
+         DC    CL4'PAGE'                                                00108699
+         DC    3C' '                                                    00108799
+PAGENUM  DS    2C                       UNPACKED PAGE NUM FOR PRINTING  00108899
+LABELS   DC    C'-'                     LABEL LINE                      00108999
+         DC    9C' '                                                    00109099
+         DC    CL10'FIRST NAME'                                         00109199
+         DC    9C' '                                                    00109299
+         DC    CL9'LAST NAME'                                           00109399
+         DC    10C' '                                                   00109499
+         DC    CL7'BALANCE'                                             00109599
+         DC    11C' '                                                   00109699
+         DC    CL8'PASSWORD'                                            00109799
+         DC    10C' '                                                   00109899
+         DC    CL9'EXP. DATE'                                           00109999
+         DC    10C' '                                                   00110099
+         DC    CL9'ID NUMBER'                                           00110199
+         DC    9C' '                                                    00110299
+UNDRLINE DC    C' '                   UNDERLINES LINE UNDER LABELS      00110399
+         DC    9C' '                                                    00110499
+         DC    10C'-'                                                   00110599
+         DC    9C' '                                                    00110699
+         DC    9C'-'                                                    00110799
+         DC    10C' '                                                   00110899
+         DC    9C'-'                                                    00110999
+         DC    9C' '                                                    00111099
+         DC    8C'-'                                                    00111199
+         DC    9C' '                                                    00111299
+         DC    11C'-'                                                   00111399
+         DC    9C' '                                                    00111499
+         DC    9C'-'                                                    00111599
+         DC    9C' '                                                    00111699
+LINE     DC    C'0'             RECORD LINE WITH A CLIENTS INFO         00111799
+         DC    9C' '                                                    00111899
+FIRST    DS    10C                                                      00111999
+         DC    9C' '                                                    00112099
+LAST     DS    10C                                                      00112199
+         DC    3C' '                                                    00112299
+BALANCE  DS    16C                                                      00112399
+         DC    8C' '                                                    00112499
+PASSWORD DS    8C                                                       00112599
+         DC    8C' '                                                    00112699
+DATE     DS    12C                                                      00112799
+         DC    9C' '                                                    00112899
+IDNUM    DS    9C                                                       00112999
+         DC    9C' '                                                    00113099
+*************** TALLY SUBROUTINE ***************                        00113199
+*  TALLY SHOWS SOME CUMULATIVE VALUES FROM THE TABEL                    00113299
+*  REGISTER USAGE                                                       00113399
+*   1  ADDRESS OF PARAMETER LIST A(TABLE,EOT)                           00113499
+*   2  ADDRESS OF TABLE                                                 00113599
+*   3  ADDRESS OF EOT                                                   00113699
+*   4  ADDRESS IF CLINET COUNT                                          00113799
+*  12  BASE REGISTER                                                    00113899
+*  13  ADDRESS OF LOCAL SAVE DATA                                       00113999
+*  14  ADDRESS FOR RETURNING TO CALLING                                 00114099
+*  15  ADDRESS OF SUBROUTINE ITSELF                                     00114199
+*************************************************                       00114299
+TALLY    CSECT                                                          00114399
+         STM   14,12,12(13)     SAVES ALL THE REGISTERS EXCEPT 13       00114499
+         LR    12,15            PUTS THE ADDRESS OF PRINT IN REG 12     00114599
+         USING TALLY,12         SETS 12 AS THE BASE REGISTER            00114699
+         LA    14,TLLYSAVE      POINTS REG 14 TO AN AREA IN BUILD MEM   00114799
+         ST    13,4(,14)        SETS UP BACKWARD POINTER                00114899
+         ST    14,8(,13)        SETS UP FORWARD POINTER                 00114999
+         LR    13,14            POINTS 13-14 IN CASE ANOTHER FUNCTION   00115099
+         LM    2,4,0(1)         LOAD PARAMTER LIST                      00115199
+         L     3,0(3)           LOAD EOT ADDRESS                        00115299
+LOOP     CR 2,3                 CHECK END OF TABLE                      00115399
+         BE ENDLOOP             GO END OF TABLE READING                 00115499
+         ZAP   TEMP(5),37(5,2)  STORE BALANCE FROM TABLE AND SET CC     00115599
+         BNL   SKIP                                                     00115699
+         AP    NEGATIVE(2),=P'1'   INCREMENT NEGATIVE BALANCE COUNT     00115799
+SKIP     AP    SUM(5),TEMP(5)      ADD BALANCE TO SUM                   00115899
+         CP    LARGEST(5),TEMP(5)  CHECK IF LARGEST                     00115999
+         BC    B'1010',LESS                                             00116099
+         MVC   LARGEST(5),TEMP     LOAD INTO LARGEST IF LARGER          00116199
+LESS     A     2,=F'48'            INCREMENT TABLE POINTER              00116299
+         B     LOOP                CONTINUE TABLE READ LOOP             00116399
+ENDLOOP  MVC   AVERAGE(5),SUM      LOAD SUM INTO AVERAGE                00116499
+         DP    AVERAGE(5),0(2,4)   DIVIDE BY CLIENT COUNT               00116599
+         MVC   CLNTOUT(4),=X'40202020'                                  00116699
+         ED    CLNTOUT(4),0(4)     STORE CLIENT COUNT                   00116799
+         MVC   SUMOUT(13),=X'40206B2020206B2021204B2020'                00116899
+         EDMK  SUMOUT(13),SUM      STORE SUM                            00116999
+         BCTR  1,0                                                      00117099
+         MVI   0(1),C'$'                                                00117199
+         MVC   AVGOUT(7),=X'402021204B2020'                             00117299
+         EDMK  AVGOUT(7),AVERAGE    STORE QUOTIENT/AVERAGE              00117399
+         BCTR  1,0                                                      00117499
+         MVI   0(1),C'$'                                                00117599
+         MVC   LARGOUT(13),=X'40206B2020206B2021204B2020'               00117699
+         EDMK  LARGOUT(13),LARGEST  STORE LARGEST BALANCE FOUND         00117799
+         BCTR  1,0                                                      00117899
+         MVI   0(1),C'$'                                                00117999
+         MVC   NEGOUT(4),=X'40202020'                                   00118099
+         ED    NEGOUT(4),NEGATIVE   STORE NEGATIVE BALANCE COUNT        00118199
+         XPRNT CLNTLINE,78      PRINT TALLY TOTALS LINES                00118299
+         XPRNT SUMLINE,81                                               00118399
+         XPRNT AVGLINE,81                                               00118499
+         XPRNT LARLINE,81                                               00118599
+         XPRNT NEGLINE,78                                               00118699
+         L     13,4(13)         LOAD OLD REG FROM SAVE AREA             00118899
+         LM    14,12,12(13)     RELOAD REGISTERS                        00118999
+         BR    14               FINISH SUBROUTINE RETURN MAIN CODE      00119099
+         LTORG                                                          00119199
+TLLYSAVE DS    18F              TALLY REG SAVE AREA                     00119299
+TEMP     DC    PL5'0'           TEMPORY PACKED TO HOLD BAL FROM TABLE   00119399
+SUM      DC    PL5'0'           RUNNING SUM OF BALANCES                 00119499
+AVERAGE  DS    PL5              AVERAGE BALANCE OF ALL ACCOUNTS         00119599
+LARGEST  DC    PL5'0'           LARGEST BAL FOUND                       00119699
+NEGATIVE DC    PL2'0'           NEGATIVE BALANCES COUNT                 00119799
+CLNTLINE DC    C'-'            TOTAL NUM CLIENT LINE                    00119899
+         DC    33C' '                                                   00119999
+         DC    CL18'NUMBER OF CLIENTS:'                                 00120099
+         DC    22C' '                                                   00120199
+CLNTOUT  DS    4C              ZONED NUM OF CLIENTS                     00120299
+SUMLINE  DC    C'0'                                                     00120399
+         DC    33C' '                                                   00120499
+         DC    CL24'SUM OF ACCOUNT BALANCES:'                           00120599
+         DC    10C' '                                                   00120699
+SUMOUT   DS    13C             FORMATTED SUM                            00120799
+AVGLINE  DC    C'0'                                                     00120899
+         DC    33C' '                                                   00120999
+         DC    CL25'AVERAGE ACCOUNT BALANCES:'                          00121099
+         DC    15C' '                                                   00121199
+AVGOUT   DS    7C              FORMATTED AVERAGE VAL                    00121299
+LARLINE  DC    C'0'                                                     00121399
+         DC    33C' '                                                   00121499
+         DC    CL25'LARGEST ACCOUNT BALANCES:'                          00121599
+         DC    9C' '                                                    00121699
+LARGOUT  DS    13C             FORMATTED LARGEST BALANCE FOUND          00121799
+NEGLINE  DC    C'0'                                                     00121899
+         DC    33C' '                                                   00121999
+         DC    CL28'NUMBER OF NEGATIVE BALANCES:'                       00122099
+         DC    12C' '                                                   00122199
+NEGOUT   DS    4C              ZONED NUM OF NEGATIVE BALANCES           00122299
+         END MAIN                                                       00122349
+/*                                                                      00122462
+//FT05F001   DD  DSN=KC02314.SUMMER18.CSCI360.HW6DATA,DISP=SHR          00122599
+//FT06F001   DD SYSOUT=*                                                00123062
+//                                                                      00130062

@@ -1,0 +1,172 @@
+//KC03F22A JOB ,'KEVIN KANG',MSGCLASS=H                                 00010000
+//STEP1 EXEC PGM=ASSIST                                                 00011000
+//STEPLIB DD DSN=KC02293.ASSIST.LOADLIB,DISP=SHR                        00012000
+//SYSPRINT DD SYSOUT=*                                                  00013000
+//SYSIN DD *                                                            00014000
+************************************************                        00015000
+*ASSIGN4                                                                00020049
+*                                                                       00030000
+*NAME: KEVIN KANG                                                       00040000
+*                                                                       00050000
+*REGISTER USAGE                                                         00060000
+*                                                                       00070000
+*  1    PARAMETER LIST FOR SUBROUTINES A(TABLE,EOT)                     00071071
+* 11    BUILD SUBROUTINE                                                00072071
+* 12    PRINT ALL SUBROUTINE                                            00073071
+* 13    PRINT ODDS SUBROUTINE                                           00074071
+* 15    BASE REGISTER                                                   00079031
+*                                                                       00079131
+************************************************                        00080000
+MAIN     CSECT                                                          00081000
+         USING MAIN,15          ESTABLISH BASE REGISTER                 00082028
+         LA    1,PLIST          LOADING PARAMETER LIST FOR BUILD        00085068
+         BAL   11,BUILD         GO TO BUILD SUBROUTINE                  00090049
+         BAL   12,PRINT         GO TO PRINT SUBROUTINE                  00090264
+         BAL   13,ODDS          GO TO ODD PRINTING SUBROUTINE           00090368
+         BR    14               END PROGRAM                             00090449
+         LTORG                                                          00090576
+TABLE    DC    60F'-8'          TABLE                                   00090676
+EOT      DC    A(TABLE)         ADDRESS OF END OF TABLE                 00090776
+PLIST    DC    A(TABLE,EOT)     PARAMETER LIST                          00090876
+*************** BUILD SUBROUTINE ***************                        00090971
+*  BUILDS TABLE FROM DATA                                               00091071
+*                                                                       00091171
+*  REGISTER USAGE                                                       00091271
+*   1  PARAMETER LIST A(TABLE,EOT) AND XDECI NEXT ADDRESS               00091371
+*   2  ADDRESS OF TABLE                                                 00091471
+*   3  ADDRESS OF EOT                                                   00091571
+*   4  XDECI READ NUMBER                                                00091671
+*  11  RETURN TO MAIN FUNCTION                                          00091772
+************************************************                        00091872
+BUILD    STM   1,4,BLDSAVE      SAVE REGISTERS, START BUILD SUBROUTINE  00091980
+         L     2,0(1)           LOAD THE ADDRESS OF TABLE INTO REG 2    00092082
+         L     3,4(1)           LOAD THE ADDRESS OF ENDTABLE IN REG 3   00092182
+READLOOP XREAD BUFFER,80        READ LINE INTO BUFFER                   00092272
+         BC    B'0100',READEND  EOF, FINISHED READING                   00092372
+         XDECI 4,BUFFER         PRIMING READ OF FIRST NUMBER            00092472
+XDECLOOP BC    B'0001',READLOOP IF XDECI HAD AND ERROR GO NEW LINE      00092572
+         CR    2,3              CHECKS TABLE NOT AT END                 00092672
+         BE    READEND          TABLE IS FULL FINISH READING            00092749
+         ST    4,0(2)           STORE VAL INTO TABLE                    00092849
+         A     2,=F'4'          MOVE TABLE ADDRESS TO NEXT FULLWORD     00092949
+         XDECI 4,0(1)           READ NEXT VALUE                         00093072
+         B     XDECLOOP         RESTART XDECI READ LOOP FOR A LINE      00094072
+READEND  ST    2,0(3)           STORE LAST ADDRESS IN END OF TABLE      00094582
+         LM    1,4,BLDSAVE      RESTORE REGISTERS TO BEFORE SUBROUTINE  00094876
+         BR    11               FINISH SUBROUTINE RETURN MAIN CODE      00094949
+         LTORG                                                          00095076
+BUFFER   DS    80C              BUFFER THAT HOLDS EACH LINE             00095176
+         DC    C'*'             XDECI STOPPER                           00095276
+BLDSAVE  DS    4F                                                       00095376
+*************** PRINT SUBROUTINE ***************                        00095772
+*  PRINTS ALL VALUES FROM A TABLE, 5 PER LINE                           00095872
+*                                                                       00095972
+*  REGISTER USAGE                                                       00096072
+*   1  PARAMETER LIST A(TABLE,EOT) AND XDECI NEXT ADDRESS               00096172
+*   2  ADDRESS OF TABLE                                                 00096272
+*   3  ADDRESS OF EOT                                                   00096372
+*   4  LOADED NUMBER FROM TABLE                                         00096472
+*   5  ADDRESS OF WHERE TO STORE NUMBER FOR PRINTING                    00096572
+*   6  COUNTER FOR NUM ITEMS ON A LINE                                  00096672
+*  12  RETURN TO MAIN FUNCTION                                          00096772
+************************************************                        00096872
+PRINT    XPRNT TITLE1,44        PRINT TITLE                             00096979
+         XPRNT BLNKLNE1,1       PRINTS BLANK LINE                       00097079
+         STM   1,6,PRNTSAVE     SAVE REGISTERS, START BUILD SUBROUTINE  00097179
+         L     2,0(1)           LOAD THE ADDRESS OF TABLE INTO REG 2    00097254
+         L     3,4(1)           LOAD THE ADDRESS OF ENDTABLE FROM PLIST 00097354
+         L     3,0(3)           LOAD THE ADDRESS OF THE TABLE END       00098054
+LINELOOP SR    6,6              ZERO OUT REG 6 FOR LINE ITEM COUNT      00099172
+         LA    5,LISTNUM+1      LOAD ADDR OF FIRST LINE ITEM            00099276
+NUMLOOP1 CR    2,3              CHECK IF END OF TABLE                   00099372
+         BE    NUMEND1          IF YES GO PRINT LINE                    00099472
+         C     6,=F'5'          CHECK IF MAX LINE ITEM                  00099572
+         BE    NUMEND1          IF YES GO PRINT LINE                    00099672
+         L     4,0(2)           GET A NUMBER                            00100054
+         XDECO 4,0(5)           STORE NUMBER                            00100154
+         A     2,=F'4'          INCREMENT TO NEXT TABLE VALUE           00100254
+         A     5,=F'12'         INCREMENT TO NEXT LINE ITEM ADDRESS     00100372
+         A     6,=F'1'          INCREMENT NUM OF ITEMS IN LINE COUNT    00100472
+         B     NUMLOOP1         CONTINUE ITEM PRINT LOOP                00100575
+NUMEND1  XPRNT LISTNUM,61       END OF LOOP, PRINT LINE                 00100675
+         CR    2,3              CHECK IF EOT                            00100775
+         BE    LINEEND          IF END OF TABLE END LINE                00100854
+         MVI   LISTNUM+1,C' '             BLANK OUT LINE WITH SPACES    00100975
+         MVC   LISTNUM+2(59),LISTNUM+1                                  00101054
+         B     LINELOOP         GO UP TO MAKE NEXT LINE                 00101154
+LINEEND  LM    1,6,PRNTSAVE     RESTORE REGISTERS TO BEFORE SUBROUTINE  00101276
+         BR    12                                                       00101357
+         LTORG                                                          00101476
+TITLE1   DC    C'1'             TITLE FORMAT                            00101576
+         DC    28C' '                                                   00101676
+         DC    CL15'LIST OF NUMBERS'                                    00101776
+BLNKLNE1 DC    C' '             USED FOR PRINTING BLANK LINES           00102176
+LISTNUM  DC    C'0'             STORAGE FOR NUMBERS IN A LINE           00102276
+         DS    12C                                                      00102376
+         DS    12C                                                      00102476
+         DS    12C                                                      00102576
+         DS    12C                                                      00102676
+         DS    12C                                                      00102776
+PRNTSAVE DS    6F                                                       00102876
+*************** ODDS PRINT SUBROUTINE ***************                   00102972
+*  PRINTS ODD VALUES FROM A TABLE, 6 PER LINE                           00103072
+*                                                                       00103172
+*  REGISTER USAGE                                                       00103272
+*   1  PARAMETER LIST A(TABLE,EOT) AND XDECI NEXT ADDRESS               00103372
+*   2  ADDRESS OF TABLE                                                 00103472
+*   3  ADDRESS OF EOT                                                   00103572
+*   4  PART OF 64 BIT NUMBER FOR DIVION WITH REG 5                      00103675
+*   5  LOADED NUMBER FROM TABLEP                                        00103775
+*   6  ADDRESS OF WHERE TO STORE NUMBER FOR PRINTING                    00103875
+*   7  COUNTER FOR NUM ITEMS ON A LINE                                  00103975
+*  12  RETURN TO MAIN FUNCTION                                          00104072
+*****************************************************                   00104172
+ODDS     XPRNT TITLE2,52        PRINT TITLE                             00104274
+         XPRNT BLNKLNE2,1       PRINTS BLANK LINE                       00104376
+         STM   1,7,ODDSAVE      SAVE REGISTERS, START BUILD SUBROUTINE  00104476
+         L     2,0(1)           LOAD THE ADDRESS OF TABLE INTO REG 2    00104568
+         L     3,4(1)           LOAD ADDR OF ADDR OF EOT FROM PLIST     00104672
+         L     3,0(3)           LOAD THE ADDRESS OF THE EOT             00104772
+ODDSLINE SR    7,7              ZERO OUT REG 7 FOR LINE ITEM COUNT      00104872
+         LA    6,ODDLINE+1      LOAD ADDRESS OF FIRST LINE ITEM         00104976
+NUMLOOP2 CR    2,3              CHECK IF END OF TABLE                   00105072
+         BE    NUMEND2          IF YES GO PRINT LINE                    00105172
+         C     7,=F'6'          CHECK IF MAX LINE ITEM                  00105272
+         BE    NUMEND2          IF YES GO PRINT LINE                    00105372
+         L     5,0(2)           GET A NUMBER                            00105468
+         M     4,=F'1'          FILLS 4 WITH -1 FOR NEG OR 0 FOR POS    00105568
+         D     4,=F'2'          DIVIDE TO FIND ODDS                     00105668
+         C     4,=F'0'          LOOKING AT REMAINDER                    00105768
+         BE    SKIPEVEN         IF EVEN SKIP STORAGE                    00105868
+         L     5,0(2)           LOAD ORIGINAL NUMBER                    00105970
+         XDECO 5,0(6)           STORE NUMBER                            00106068
+         A     6,=F'12'         INCREMENT TO NEXT LINE ITEM ADDRESS     00106172
+         A     7,=F'1'          INCREMENT NUM OF ITEMS IN LINE COUNT    00106272
+SKIPEVEN A     2,=F'4'          INCREMENT TO NEXT TABLE VALUE           00106368
+         B     NUMLOOP2         LOOP ON NEXT TABLE ITEM                 00106472
+NUMEND2  XPRNT ODDLINE,73       PRINTS A LINE                           00106576
+         CR    2,3              CHECKS END OF TABLE                     00106672
+         BE    ODDSEND          IF END OF TABLE END LINE                00106768
+         MVI   ODDLINE+1,C' '             CLEARS LINE DATA              00106876
+         MVC   ODDLINE+2(71),ODDLINE+1    CLEARS LINE DATA              00106981
+         B     ODDSLINE         GO UP TO MAKE NEXT LINE OF ODDS         00107069
+ODDSEND  LM    1,7,ODDSAVE      RESTORE REGISTERS TO BEFORE SUBROUTINE  00107176
+         BR    13               GO BACK TO MAIN FUNCTION                00107272
+         LTORG                                                          00107476
+TITLE2   DC    C'1'             ODDS TITTLE FORMAT                      00107968
+         DC    32C' '                                                   00108073
+         DC    CL19'LIST OF ODD NUMBERS'                                00108168
+BLNKLNE2 DC    C' '             USED FOR PRINTING BLANK LINES           00108276
+ODDLINE  DC    C'0'             STORAGE FOR NUMBERS IN A LINE           00108376
+         DS    12C                                                      00108476
+         DS    12C                                                      00108576
+         DS    12C                                                      00108676
+         DS    12C                                                      00108776
+         DS    12C                                                      00108876
+         DS    12C                                                      00108976
+ODDSAVE  DS    7F               REGISTER SAVER                          00109076
+         END MAIN                                                       00109149
+/*                                                                      00109262
+//FT05F001   DD  DSN=KC02314.SUMMER18.CSCI360.HW4DATA,DISP=SHR          00109362
+//FT06F001   DD SYSOUT=*                                                00109462
+//                                                                      00110062

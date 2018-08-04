@@ -1,0 +1,88 @@
+* CSCI360 Written Assignment 1
+* Written by Kevin Kang, z1837081
+* Due: Monday, June 25
+
+1. Convert the following binary numbers to their decimal representations:
+  a.   1011 =           8 + 0 + 2 + 1 = 11
+  b.  11010 =      16 + 8 + 0 + 2 + 0 = 26
+  c. 101010 =  32 + 0 + 8 + 0 + 2 + 0 = 42
+  d. 111001 = 32 + 16 + 8 + 0 + 0 + 1 = 57
+  
+2. Convert the following hexadecimal numbers to their decimal representations:
+  a.  2A =            2 * 16 + 10 = 42
+  b.  B3 =           11 * 16 +  3 = 176
+  c. 5A7 = 5 * 256 + 10 * 16 +  7 = 1447
+  d. 2FE = 2 * 256 + 15 * 16 + 14 = 766
+  
+3. Convert the following decimal numbers to their hexadecimal and binary representations:
+  a.   21 => 21/2 = 10, R:1 => 10/2 = 5, R:0 => 5/2 = 2, R:1 => 2/2 = 1, R:0 = 10101 
+  b. 1407 => 1407/2 = 703, R:1 => 703/2 = 351, R:1, 351/2 = 175, R:1, 351/2 = 175, R: 1 => 
+            => 175/2 = 87, R:1 => 87/2 = 43, R:1 => 43/2 = 21, R:1 => 21 = 10101
+            => 1407 = 101 0111 1111		
+  c.  376 => 376/2 = 188, R:0 => 188/2 = 94, R:0 => 94/2 = 47, R:0 => 47/2 = 23, R:1
+            => 23/2 = 11, R:1 => 11/2 = 5, R:1 => 5/2 = 2, R:1 => 2/2 = 1, R:0
+			=> 1 0111 1000
+  d. 2047 => /2 = 1023, R:1 => /2 = 511, R:1 => /2 = 255, R:1 => /2 = 127, R:1
+            => /2 = 63, R:1 => /2 = 31, R:1 => /2 = 15, R:1 => /2 = 7, R:1
+			=> /2 = 3, R:1 => /2 = 1, R:1 => /2 = 0, R:1
+			=> 111 1111 1111
+
+4. Do the binary arithmetic:
+  a. 111      b. 11  1    c.         d.
+      10101       11001       10111      11101
+   +  01110    +  01101     - 01001    - 01011
+   --------    --------     -------    -------
+   = 100011    = 100110     =  1110    = 10010
+
+5. Do the hexadecimal arithmetic:
+  a.  1     b. 1     c.        d.
+     47A3       E14      5DA1     D9A
+   + 729B    +  37B    - 37B6   - C1F
+   ------    ------    ------   -----
+   = BA3E    = 118F    = 25EB   = 17B
+
+6. a. 1  1111         0111 <=overflow   b.       1        10  <= overflow
+      1A2B3C4D    1 => 0001                976A134F   9 => 1001
+    + 7890FEDC    7 => 0111              + 9425C822   9 => 1001
+    ----------    ---------              ----------   ---------
+      92BC3B29         1000                2B8FDB71        0010  
+	  
+   c.                11111 1         11111<= no overflow
+      E5D2976D       E5D2976D    E => 1110         
+    - A29184A1  => + 5D6E7B5F    5 => 0101     
+    ----------     ----------    ---------
+                     434112CC         0100
+				 
+   d.                        1           0111 <= overflow
+	  534B1F30       534B1F30    5 => 0101
+	- 892E41C2  => + 76D1BE3E    7 => 0111
+	----------     ----------    ---------
+	                 CA1CDD6E         1100
+					 
+   e.                01111<= overflow
+      7FFFFFFF   7 => 0111
+    + 70000001   7 => 0111	  
+    ----------   ---------
+      F0000000        1111
+	  
+   f.               11 1 1          10011<= overflow
+      C774AF12       C774AF12   C => 1100
+    - 61F2B33D  => + 9E0D4CC3   9 => 1001
+    ----------     ----------   ---------
+                     6581FBD5	     0110
+					 
+7. Here are some expressions which may be D(X,B) addresses. If they are valid, 
+   calculate the values (in hexadecimal), and if they are not valid, explain why not:
+   R0: 00051D2C    R1: 0000006F    R7: F007321B
+  
+  a. 67(0,1) =  0000006F    b. 0(0,1,7) not valid
+                00000000               too many args
+              +       43
+              ----------
+                000000B2
+				
+  c. 55(7,0) =  00000000    d. 34(7,1) =  0000006F
+                F007321B                  F007321B
+              +       37                +       22
+              ----------                ----------
+                F0073252                  F00732AC

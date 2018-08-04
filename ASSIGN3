@@ -1,0 +1,128 @@
+//KC03F22A JOB ,'KEVIN KANG',MSGCLASS=H                                 00010000
+//STEP1 EXEC PGM=ASSIST                                                 00011000
+//STEPLIB DD DSN=KC02293.ASSIST.LOADLIB,DISP=SHR                        00012000
+//SYSPRINT DD SYSOUT=*                                                  00013000
+//SYSIN DD *                                                            00014000
+************************************************                        00015000
+*ASSIGN3                                                                00020032
+*                                                                       00030000
+*NAME: KEVIN KANG                                                       00040000
+*                                                                       00050000
+*REGISTER USAGE                                                         00060000
+*                                                                       00070000
+*  1    USED FOR ADDRESS STORAGE AFTER XDECI                            00071031
+*  2    HOLDS ORDER ID,PRODUCT ID, AND 64 BIT SPACEFOR REG 3            00072047
+*  3    HOLDS NUMBER OF ORDERS                                          00073047
+*  4    HOLDS PRICE OF EACH PRODUCT                                     00074047
+*  5    HOLDS DISCOUNT                                                  00075047
+*  6    HOLDS SHIPPING COST                                             00076047
+*  7    HOLDS TOTAL NUMBER OF SALES                                     00077047
+*  8    HOLDS NUM OF FREE SHIPPINGS                                     00078047
+*         LATER USED FOR REMAINDER FOR FINDING AVG SALE                 00078147
+*  9    SUM OF ALL SALES                                                00078247
+*         LATER USED FOR QUOTIENT FOR FINDING AVG SALE                  00078347
+* 15    BASE REGISTER                                                   00079031
+*                                                                       00079131
+************************************************                        00080000
+MAIN     CSECT                                                          00081000
+         USING MAIN,15          ESTABLISH BASE REGISTER                 00082028
+         SR    7,7              CLEARING REG 7 FOR NUMBER OF SALES      00082144
+         SR    8,8              CLEARING REG 8 FOR NUMBER OF FREE SHIP  00082244
+         SR    9,9              CLEARING REG 9 FOR SUM OF ALL SALES     00082344
+         XPRNT TITLE,72         PRINT TITLE                             00083048
+         XPRNT CATLABEL,115     PRINTS CATEGORY LABELS                  00085042
+LOOP     XREAD BUFFER,80        READS A LINE, START OF LOOP             00090031
+         BC    B'0100',LOOPEND  LOOKS FOR EOF CC                        00090128
+         A     7,=F'1'          TOTAL NUM SALES COUNTER                 00090244
+         XDECI 2,BUFFER         GETS PRODID FROMT BUFFER                00090433
+         XDECO 2,ORDERID        STORES ORDERID                          00090544
+         XDECI 3,0(1)           GETS NUMER OF ORDERS                    00090633
+         XDECI 4,0(1)           GETS PRICE OF EACH PRODUCT              00090833
+         XDECI 2,0(1)           GETS THE ORDER ID                       00090933
+         XDECO 2,PRODID         STORES PRODUCT ID                       00091043
+         XDECO 3,NUMORDER       STORES THE NUMBER OF ORDERS             00091133
+         XDECO 4,PRICE          STORES THE PRICE                        00091233
+* START OF CALCULATIONS                                                 00091337
+         MR    2,4              MULTIPLY ORDERED NUM BY PRICE STORE:3   00091436
+         SR    5,5              CLEAR REG 5 FOR DISCOUNT                00091537
+         C     3,=F'25000'      COMP PRETOTAL FOR DISCOUNT              00091638
+         BL    NODIS            IF PRE < 25000 NO DISCOUNT              00091737
+         L     5,=F'500'        SET DISCOUNT TO 500                     00091837
+NODIS    L     6,=F'750'        DEFAULT SHIPPING COST OF 750            00091946
+         C     3,=F'10000'      COMP PRETOTAL FOR SHIPPING              00092037
+         BL    NOSHIP           IF PRE < 10000 KEEP SHIPPING COST       00092144
+         L     6,=F'0'          IF PRE>= 10000 ZERO SHIPPING COST       00092244
+         A     8,=F'1'          INCREMENT FREE SHIPPING COUNTER         00092344
+NOSHIP   SR    3,5              SUBTRACT DISCOUNT FROM PRETOTAL         00092438
+         AR    3,6              ADD SHIPPING TO PRETOTAL                00092537
+         AR    9,3              ADD LINE TOTAL TO FINAL TOTAL           00092644
+         XDECO 3,LTOTAL         STORES LINE TOTAL                       00092739
+         XDECO 5,DISCOUNT       STORES DISCOUNT                         00092839
+         XDECO 6,SHIP           STORES SHIPPING                         00092939
+         XPRNT LINE,115         PRINTS A LINE                           00093044
+         B     LOOP             RETURN TO TOP OF LOOP                   00093144
+LOOPEND  XDECO 7,NUMSALE        STORES TOTAL NUMBER OF SALES            00093244
+         XDECO 8,FREESHIP       STORES NUM OF FREE SHIPPINGS            00093344
+         XDECO 9,SUMALL         STORES SUM OF ALL SALES                 00094044
+         SR    8,8              ZERO OUT REG 8 SO WE CAN DIVIDE REG 9   00094146
+         DR    8,7              DIVIDE REG 9 BY REG 7                   00094246
+         AR    8,8              DOUBLE REMAINDER FOR ROUNDING           00094346
+         CR    8,7              COMPARE FOR ROUNDING                    00094446
+         BL    NOROUND          DON'T ROUND UP IF LESS                  00094546
+         A     9,=F'1'          ROUND UP BY ONE                         00094646
+NOROUND  XDECO 9,AVGSALE        STORE AVERAGE SALE TOTAL                00094746
+         XPRNT FINAL1,39        PRINT TOTAL NUM SALES                   00095044
+         XPRNT FINAL2,39        PRINT NUMBER OF FREE SHIPPING           00096044
+         XPRNT FINAL3,39        PRINT SUM OF ALL SALES                  00097044
+         XPRNT FINAL4,39        PRINT AVERAGE SALE TOTAL                00098046
+         BR    14               END PROGRAM                             00100044
+BUFFER   DS    80C              BUFFER THAT HOLDS EACH LINE             00101031
+TITLE    DC    C'1'             TITLE FORMAT                            00102047
+         DC    43C' '                                                   00103048
+         DC    CL28'SALES REPORT -- WIDGETS-R-US'                       00104040
+CATLABEL DC    C'0'             CATEGORY LABELS                         00105047
+         DC    5C' '                                                    00106040
+         DC    CL8'ORDER ID'                                            00107040
+         DC    8C' '                                                    00108040
+         DC    CL10'PRODUCT ID'                                         00109040
+         DC    7C' '                                                    00109142
+         DC    CL10'PRICE EACH'                                         00109242
+         DC    5C' '                                                    00109342
+         DC    CL14'NUMBER ORDERED'                                     00109442
+         DC    6C' '                                                    00109542
+         DC    CL8'DISCOUNT'                                            00109642
+         DC    9C' '                                                    00109742
+         DC    CL8'SHIPPING'                                            00109842
+         DC    11C' '                                                   00109942
+         DC    CL5'TOTAL'                                               00110042
+LINE     DC    C'0'             LINE ITEM                               00110147
+ORDERID  DS    12C                                                      00110240
+         DC    5C' '                                                    00110340
+PRODID   DS    12C                                                      00110440
+         DC    5C' '                                                    00110540
+PRICE    DS    12C                                                      00110640
+         DC    5C' '                                                    00110740
+NUMORDER DS    12C                                                      00110841
+         DC    5C' '                                                    00110941
+DISCOUNT DS    12C                                                      00111040
+         DC    5C' '                                                    00111140
+SHIP     DS    12C                                                      00111240
+         DC    5C' '                                                    00111340
+LTOTAL   DS    12C                                                      00111440
+FINAL1   DC    C'-'                                                     00111544
+         DC    CL26'TOTAL NUMBER OF SALES:    '                         00111644
+NUMSALE  DS    12C                                                      00111745
+FINAL2   DC    C'0'                                                     00111847
+         DC    CL26'NUMBER WITH FREE SHIPPING:'                         00111944
+FREESHIP DS    12C                                                      00112044
+FINAL3   DC    C'0'                                                     00112144
+         DC    CL26'SUM OF ALL SALES:         '                         00112244
+SUMALL   DS    12C                                                      00112344
+FINAL4   DC    C'0'                                                     00112446
+         DC    CL26'AVERAGE SALE TOTAL:       '                         00112546
+AVGSALE  DS    12C                                                      00112646
+         END   MAIN                                                     00112700
+/*                                                                      00112832
+//FT05F001   DD  DSN=KC02314.SUMMER18.CSCI360.HW3DATA,DISP=SHR          00113032
+//FT06F001   DD SYSOUT=*                                                00114032
+//                                                                      00115032

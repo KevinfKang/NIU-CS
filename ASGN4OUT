@@ -1,0 +1,259 @@
+1                    J E S 2  J O B  L O G  --  S Y S T E M  S 0 W 1  --  N O D E  Z O S K C T R         
+0 
+ 16.20.28 JOB09997 ---- MONDAY,    09 JUL 2018 ----
+ 16.20.28 JOB09997  IRR010I  USERID KC03F22  IS ASSIGNED TO THIS JOB.
+ 16.20.28 JOB09997  ICH70001I KC03F22  LAST ACCESS AT 16:15:51 ON MONDAY, JULY 9, 2018
+ 16.20.28 JOB09997  $HASP373 KC03F22A STARTED - INIT 2    - CLASS A        - SYS S0W1
+ 16.20.28 JOB09997  -                                         --TIMINGS (MINS.)--            ----PAGING COUNTS---
+ 16.20.28 JOB09997  -JOBNAME  STEPNAME PROCSTEP    RC   EXCP    TCB    SRB  CLOCK   SERV  PG   PAGE   SWAP    VIO SWAPS
+ 16.20.28 JOB09997  -KC03F22A                      00     71 ******    .00     .0    218   0      0      0      0     0
+ 16.20.28 JOB09997  -KC03F22A ENDED.  NAME-KEVIN KANG           TOTAL TCB CPU TIME=   .00  TOTAL ELAPSED TIME=    .0
+ 16.20.28 JOB09997  $HASP395 KC03F22A ENDED
+0------ JES2 JOB STATISTICS ------
+-  09 JUL 2018 JOB EXECUTION DATE
+-          171 CARDS READ
+-          259 SYSOUT PRINT RECORDS
+-            0 SYSOUT PUNCH RECORDS
+-           27 SYSOUT SPOOL KBYTES
+-         0.00 MINUTES EXECUTION TIME
+         1 //KC03F22A JOB ,'KEVIN KANG',MSGCLASS=H                                 JOB09997
+         2 //STEP1 EXEC PGM=ASSIST                                                 00011000
+         3 //STEPLIB DD DSN=KC02293.ASSIST.LOADLIB,DISP=SHR                        00012000
+         4 //SYSPRINT DD SYSOUT=*                                                  00013000
+         5 //SYSIN DD *                                                            00014000
+         6 //FT05F001   DD  DSN=KC02314.SUMMER18.CSCI360.HW4DATA,DISP=SHR          00109362
+         7 //FT06F001   DD SYSOUT=*                                                00109462
+ ICH70001I KC03F22  LAST ACCESS AT 16:15:51 ON MONDAY, JULY 9, 2018
+ IEF236I ALLOC. FOR KC03F22A STEP1
+ IGD103I SMS ALLOCATED TO DDNAME STEPLIB
+ IEF237I JES2 ALLOCATED TO SYSPRINT
+ IEF237I JES2 ALLOCATED TO SYSIN
+ IGD103I SMS ALLOCATED TO DDNAME FT05F001
+ IEF237I JES2 ALLOCATED TO FT06F001
+ IEF142I KC03F22A STEP1 - STEP WAS EXECUTED - COND CODE 0000
+ IGD104I KC02293.ASSIST.LOADLIB                       RETAINED,  DDNAME=STEPLIB 
+ IEF285I   KC03F22.KC03F22A.JOB09997.D0000102.?         SYSOUT        
+ IEF285I   KC03F22.KC03F22A.JOB09997.D0000101.?         SYSIN         
+ IGD104I KC02314.SUMMER18.CSCI360.HW4DATA             RETAINED,  DDNAME=FT05F001
+ IEF285I   KC03F22.KC03F22A.JOB09997.D0000103.?         SYSOUT        
+ IEF373I STEP/STEP1   /START 2018190.1620
+ IEF032I STEP/STEP1   /STOP  2018190.1620 
+         CPU:     0 HR  00 MIN  00.01 SEC    SRB:     0 HR  00 MIN  00.00 SEC    
+         VIRT:   584K  SYS:   268K  EXT:        4K  SYS:    11420K
+         ATB- REAL:                     0K  SLOTS:                     0K
+              VIRT- ALLOC:       0M SHRD:       0M
+ IEF375I  JOB/KC03F22A/START 2018190.1620
+ IEF033I  JOB/KC03F22A/STOP  2018190.1620 
+         CPU:     0 HR  00 MIN  00.01 SEC    SRB:     0 HR  00 MIN  00.00 SEC    
+1*** ASSIST 4.0/A2-05/15/82  470/V7A/0:OS/VS2  INS=SDFP7/X=BGHO, CHECK/TRC/=1180, OPTS=CDKMPR FROM PENN ST*NIU COMPSCI*LT         
+0                                                                                                                                 
+0                                                                                                               PAGE    1         
+0  LOC  OBJECT CODE    ADDR1 ADDR2  STMT   SOURCE STATEMENT                                                                       
+                                       1 ************************************************                        00015000         
+                                       2 *ASSIGN4                                                                00020049         
+                                       3 *                                                                       00030000         
+                                       4 *NAME: KEVIN KANG                                                       00040000         
+                                       5 *                                                                       00050000         
+                                       6 *REGISTER USAGE                                                         00060000         
+                                       7 *                                                                       00070000         
+                                       8 *  1    PARAMETER LIST FOR SUBROUTINES A(TABLE,EOT)                     00071071         
+                                       9 * 11    BUILD SUBROUTINE                                                00072071         
+                                      10 * 12    PRINT ALL SUBROUTINE                                            00073071         
+                                      11 * 13    PRINT ODDS SUBROUTINE                                           00074071         
+                                      12 * 15    BASE REGISTER                                                   00079031         
+                                      13 *                                                                       00079131         
+                                      14 ************************************************                        00080000         
+ 000000                               15 MAIN     CSECT                                                          00081000         
+ 000000                               16          USING MAIN,15          ESTABLISH BASE REGISTER                 00082028         
+ 000000 4110 F10C            0010C    17          LA    1,PLIST          LOADING PARAMETER LIST FOR BUILD        00085068         
+ 000004 45B0 F114            00114    18          BAL   11,BUILD         GO TO BUILD SUBROUTINE                  00090049         
+ 000008 45C0 F1C0            001C0    19          BAL   12,PRINT         GO TO PRINT SUBROUTINE                  00090264         
+ 00000C 45D0 F2BC            002BC    20          BAL   13,ODDS          GO TO ODD PRINTING SUBROUTINE           00090368         
+ 000010 07FE                          21          BR    14               END PROGRAM                             00090449         
+                                      22          LTORG                                                          00090576         
+ 000018 FFFFFFF8FFFFFFF8              23 TABLE    DC    60F'-8'          TABLE                                   00090676         
+ 000108 00000018                      24 EOT      DC    A(TABLE)         ADDRESS OF END OF TABLE                 00090776         
+ 00010C 0000001800000108              25 PLIST    DC    A(TABLE,EOT)     PARAMETER LIST                          00090876         
+                                      26 *************** BUILD SUBROUTINE ***************                        00090971         
+                                      27 *  BUILDS TABLE FROM DATA                                               00091071         
+                                      28 *                                                                       00091171         
+                                      29 *  REGISTER USAGE                                                       00091271         
+                                      30 *   1  PARAMETER LIST A(TABLE,EOT) AND XDECI NEXT ADDRESS               00091371         
+                                      31 *   2  ADDRESS OF TABLE                                                 00091471         
+                                      32 *   3  ADDRESS OF EOT                                                   00091571         
+                                      33 *   4  XDECI READ NUMBER                                                00091671         
+                                      34 *  11  RETURN TO MAIN FUNCTION                                          00091772         
+                                      35 ************************************************                        00091872         
+ 000114 9014 F1B0            001B0    36 BUILD    STM   1,4,BLDSAVE      SAVE REGISTERS, START BUILD SUBROUTINE  00091980         
+ 000118 5821 0000            00000    37          L     2,0(1)           LOAD THE ADDRESS OF TABLE INTO REG 2    00092082         
+ 00011C 5831 0004            00004    38          L     3,4(1)           LOAD THE ADDRESS OF ENDTABLE IN REG 3   00092182         
+ 000120 E000 F15C 0050 0015C          39 READLOOP XREAD BUFFER,80        READ LINE INTO BUFFER                   00092272         
+ 000126 4740 F148            00148    40          BC    B'0100',READEND  EOF, FINISHED READING                   00092372         
+ 00012A 5340 F15C            0015C    41          XDECI 4,BUFFER         PRIMING READ OF FIRST NUMBER            00092472         
+ 00012E 4710 F120            00120    42 XDECLOOP BC    B'0001',READLOOP IF XDECI HAD AND ERROR GO NEW LINE      00092572         
+ 000132 1923                          43          CR    2,3              CHECKS TABLE NOT AT END                 00092672         
+ 000134 4780 F148            00148    44          BE    READEND          TABLE IS FULL FINISH READING            00092749         
+ 000138 5042 0000            00000    45          ST    4,0(2)           STORE VAL INTO TABLE                    00092849         
+ 00013C 5A20 F158            00158    46          A     2,=F'4'          MOVE TABLE ADDRESS TO NEXT FULLWORD     00092949         
+ 000140 5341 0000            00000    47          XDECI 4,0(1)           READ NEXT VALUE                         00093072         
+ 000144 47F0 F12E            0012E    48          B     XDECLOOP         RESTART XDECI READ LOOP FOR A LINE      00094072         
+ 000148 5023 0000            00000    49 READEND  ST    2,0(3)           STORE LAST ADDRESS IN END OF TABLE      00094582         
+ 00014C 9814 F1B0            001B0    50          LM    1,4,BLDSAVE      RESTORE REGISTERS TO BEFORE SUBROUTINE  00094876         
+ 000150 07FB                          51          BR    11               FINISH SUBROUTINE RETURN MAIN CODE      00094949         
+                                      52          LTORG                                                          00095076         
+1                                                                                                               PAGE    2         
+0  LOC  OBJECT CODE    ADDR1 ADDR2  STMT   SOURCE STATEMENT                                                                       
+ 000158 00000004                      53                =F'4'                                                                     
+ 00015C                               54 BUFFER   DS    80C              BUFFER THAT HOLDS EACH LINE             00095176         
+ 0001AC 5C                            55          DC    C'*'             XDECI STOPPER                           00095276         
+ 0001B0                               56 BLDSAVE  DS    4F                                                       00095376         
+                                      57 *************** PRINT SUBROUTINE ***************                        00095772         
+                                      58 *  PRINTS ALL VALUES FROM A TABLE, 5 PER LINE                           00095872         
+                                      59 *                                                                       00095972         
+                                      60 *  REGISTER USAGE                                                       00096072         
+                                      61 *   1  PARAMETER LIST A(TABLE,EOT) AND XDECI NEXT ADDRESS               00096172         
+                                      62 *   2  ADDRESS OF TABLE                                                 00096272         
+                                      63 *   3  ADDRESS OF EOT                                                   00096372         
+                                      64 *   4  LOADED NUMBER FROM TABLE                                         00096472         
+                                      65 *   5  ADDRESS OF WHERE TO STORE NUMBER FOR PRINTING                    00096572         
+                                      66 *   6  COUNTER FOR NUM ITEMS ON A LINE                                  00096672         
+                                      67 *  12  RETURN TO MAIN FUNCTION                                          00096772         
+                                      68 ************************************************                        00096872         
+ 0001C0 E020 F238 002C 00238          69 PRINT    XPRNT TITLE1,44        PRINT TITLE                             00096979         
+ 0001C6 E020 F264 0001 00264          70          XPRNT BLNKLNE1,1       PRINTS BLANK LINE                       00097079         
+ 0001CC 9016 F2A4            002A4    71          STM   1,6,PRNTSAVE     SAVE REGISTERS, START BUILD SUBROUTINE  00097179         
+ 0001D0 5821 0000            00000    72          L     2,0(1)           LOAD THE ADDRESS OF TABLE INTO REG 2    00097254         
+ 0001D4 5831 0004            00004    73          L     3,4(1)           LOAD THE ADDRESS OF ENDTABLE FROM PLIST 00097354         
+ 0001D8 5833 0000            00000    74          L     3,0(3)           LOAD THE ADDRESS OF THE TABLE END       00098054         
+ 0001DC 1B66                          75 LINELOOP SR    6,6              ZERO OUT REG 6 FOR LINE ITEM COUNT      00099172         
+ 0001DE 4150 F266            00266    76          LA    5,LISTNUM+1      LOAD ADDR OF FIRST LINE ITEM            00099276         
+ 0001E2 1923                          77 NUMLOOP1 CR    2,3              CHECK IF END OF TABLE                   00099372         
+ 0001E4 4780 F208            00208    78          BE    NUMEND1          IF YES GO PRINT LINE                    00099472         
+ 0001E8 5960 F228            00228    79          C     6,=F'5'          CHECK IF MAX LINE ITEM                  00099572         
+ 0001EC 4780 F208            00208    80          BE    NUMEND1          IF YES GO PRINT LINE                    00099672         
+ 0001F0 5842 0000            00000    81          L     4,0(2)           GET A NUMBER                            00100054         
+ 0001F4 5245 0000            00000    82          XDECO 4,0(5)           STORE NUMBER                            00100154         
+ 0001F8 5A20 F22C            0022C    83          A     2,=F'4'          INCREMENT TO NEXT TABLE VALUE           00100254         
+ 0001FC 5A50 F230            00230    84          A     5,=F'12'         INCREMENT TO NEXT LINE ITEM ADDRESS     00100372         
+ 000200 5A60 F234            00234    85          A     6,=F'1'          INCREMENT NUM OF ITEMS IN LINE COUNT    00100472         
+ 000204 47F0 F1E2            001E2    86          B     NUMLOOP1         CONTINUE ITEM PRINT LOOP                00100575         
+ 000208 E020 F265 003D 00265          87 NUMEND1  XPRNT LISTNUM,61       END OF LOOP, PRINT LINE                 00100675         
+ 00020E 1923                          88          CR    2,3              CHECK IF EOT                            00100775         
+ 000210 4780 F222            00222    89          BE    LINEEND          IF END OF TABLE END LINE                00100854         
+ 000214 9240 F266      00266          90          MVI   LISTNUM+1,C' '             BLANK OUT LINE WITH SPACES    00100975         
+ 000218 D23A F267 F266 00267 00266    91          MVC   LISTNUM+2(59),LISTNUM+1                                  00101054         
+ 00021E 47F0 F1DC            001DC    92          B     LINELOOP         GO UP TO MAKE NEXT LINE                 00101154         
+ 000222 9816 F2A4            002A4    93 LINEEND  LM    1,6,PRNTSAVE     RESTORE REGISTERS TO BEFORE SUBROUTINE  00101276         
+ 000226 07FC                          94          BR    12                                                       00101357         
+                                      95          LTORG                                                          00101476         
+ 000228 00000005                      96                =F'5'                                                                     
+ 00022C 00000004                      97                =F'4'                                                                     
+ 000230 0000000C                      98                =F'12'                                                                    
+ 000234 00000001                      99                =F'1'                                                                     
+ 000238 F1                           100 TITLE1   DC    C'1'             TITLE FORMAT                            00101576         
+ 000239 4040404040404040             101          DC    28C' '                                                   00101676         
+ 000255 D3C9E2E340D6C640             102          DC    CL15'LIST OF NUMBERS'                                    00101776         
+ 000264 40                           103 BLNKLNE1 DC    C' '             USED FOR PRINTING BLANK LINES           00102176         
+ 000265 F0                           104 LISTNUM  DC    C'0'             STORAGE FOR NUMBERS IN A LINE           00102276         
+ 000266                              105          DS    12C                                                      00102376         
+ 000272                              106          DS    12C                                                      00102476         
+ 00027E                              107          DS    12C                                                      00102576         
+ 00028A                              108          DS    12C                                                      00102676         
+ 000296                              109          DS    12C                                                      00102776         
+1                                                                                                               PAGE    3         
+0  LOC  OBJECT CODE    ADDR1 ADDR2  STMT   SOURCE STATEMENT                                                                       
+ 0002A4                              110 PRNTSAVE DS    6F                                                       00102876         
+                                     111 *************** ODDS PRINT SUBROUTINE ***************                   00102972         
+                                     112 *  PRINTS ODD VALUES FROM A TABLE, 6 PER LINE                           00103072         
+                                     113 *                                                                       00103172         
+                                     114 *  REGISTER USAGE                                                       00103272         
+                                     115 *   1  PARAMETER LIST A(TABLE,EOT) AND XDECI NEXT ADDRESS               00103372         
+                                     116 *   2  ADDRESS OF TABLE                                                 00103472         
+                                     117 *   3  ADDRESS OF EOT                                                   00103572         
+                                     118 *   4  PART OF 64 BIT NUMBER FOR DIVION WITH REG 5                      00103675         
+                                     119 *   5  LOADED NUMBER FROM TABLEP                                        00103775         
+                                     120 *   6  ADDRESS OF WHERE TO STORE NUMBER FOR PRINTING                    00103875         
+                                     121 *   7  COUNTER FOR NUM ITEMS ON A LINE                                  00103975         
+                                     122 *  12  RETURN TO MAIN FUNCTION                                          00104072         
+                                     123 *****************************************************                   00104172         
+ 0002BC E020 F350 0034 00350         124 ODDS     XPRNT TITLE2,52        PRINT TITLE                             00104274         
+ 0002C2 E020 F384 0001 00384         125          XPRNT BLNKLNE2,1       PRINTS BLANK LINE                       00104376         
+ 0002C8 9017 F3D0            003D0   126          STM   1,7,ODDSAVE      SAVE REGISTERS, START BUILD SUBROUTINE  00104476         
+ 0002CC 5821 0000            00000   127          L     2,0(1)           LOAD THE ADDRESS OF TABLE INTO REG 2    00104568         
+ 0002D0 5831 0004            00004   128          L     3,4(1)           LOAD ADDR OF ADDR OF EOT FROM PLIST     00104672         
+ 0002D4 5833 0000            00000   129          L     3,0(3)           LOAD THE ADDRESS OF THE EOT             00104772         
+ 0002D8 1B77                         130 ODDSLINE SR    7,7              ZERO OUT REG 7 FOR LINE ITEM COUNT      00104872         
+ 0002DA 4160 F386            00386   131          LA    6,ODDLINE+1      LOAD ADDRESS OF FIRST LINE ITEM         00104976         
+ 0002DE 1923                         132 NUMLOOP2 CR    2,3              CHECK IF END OF TABLE                   00105072         
+ 0002E0 4780 F318            00318   133          BE    NUMEND2          IF YES GO PRINT LINE                    00105172         
+ 0002E4 5970 F338            00338   134          C     7,=F'6'          CHECK IF MAX LINE ITEM                  00105272         
+ 0002E8 4780 F318            00318   135          BE    NUMEND2          IF YES GO PRINT LINE                    00105372         
+ 0002EC 5852 0000            00000   136          L     5,0(2)           GET A NUMBER                            00105468         
+ 0002F0 5C40 F33C            0033C   137          M     4,=F'1'          FILLS 4 WITH -1 FOR NEG OR 0 FOR POS    00105568         
+ 0002F4 5D40 F340            00340   138          D     4,=F'2'          DIVIDE TO FIND ODDS                     00105668         
+ 0002F8 5940 F344            00344   139          C     4,=F'0'          LOOKING AT REMAINDER                    00105768         
+ 0002FC 4780 F310            00310   140          BE    SKIPEVEN         IF EVEN SKIP STORAGE                    00105868         
+ 000300 5852 0000            00000   141          L     5,0(2)           LOAD ORIGINAL NUMBER                    00105970         
+ 000304 5256 0000            00000   142          XDECO 5,0(6)           STORE NUMBER                            00106068         
+ 000308 5A60 F348            00348   143          A     6,=F'12'         INCREMENT TO NEXT LINE ITEM ADDRESS     00106172         
+ 00030C 5A70 F33C            0033C   144          A     7,=F'1'          INCREMENT NUM OF ITEMS IN LINE COUNT    00106272         
+ 000310 5A20 F34C            0034C   145 SKIPEVEN A     2,=F'4'          INCREMENT TO NEXT TABLE VALUE           00106368         
+ 000314 47F0 F2DE            002DE   146          B     NUMLOOP2         LOOP ON NEXT TABLE ITEM                 00106472         
+ 000318 E020 F385 0049 00385         147 NUMEND2  XPRNT ODDLINE,73       PRINTS A LINE                           00106576         
+ 00031E 1923                         148          CR    2,3              CHECKS END OF TABLE                     00106672         
+ 000320 4780 F332            00332   149          BE    ODDSEND          IF END OF TABLE END LINE                00106768         
+ 000324 9240 F386      00386         150          MVI   ODDLINE+1,C' '             CLEARS LINE DATA              00106876         
+ 000328 D246 F387 F386 00387 00386   151          MVC   ODDLINE+2(71),ODDLINE+1    CLEARS LINE DATA              00106981         
+ 00032E 47F0 F2D8            002D8   152          B     ODDSLINE         GO UP TO MAKE NEXT LINE OF ODDS         00107069         
+ 000332 9817 F3D0            003D0   153 ODDSEND  LM    1,7,ODDSAVE      RESTORE REGISTERS TO BEFORE SUBROUTINE  00107176         
+ 000336 07FD                         154          BR    13               GO BACK TO MAIN FUNCTION                00107272         
+                                     155          LTORG                                                          00107476         
+ 000338 00000006                     156                =F'6'                                                                     
+ 00033C 00000001                     157                =F'1'                                                                     
+ 000340 00000002                     158                =F'2'                                                                     
+ 000344 00000000                     159                =F'0'                                                                     
+ 000348 0000000C                     160                =F'12'                                                                    
+ 00034C 00000004                     161                =F'4'                                                                     
+ 000350 F1                           162 TITLE2   DC    C'1'             ODDS TITTLE FORMAT                      00107968         
+ 000351 4040404040404040             163          DC    32C' '                                                   00108073         
+ 000371 D3C9E2E340D6C640             164          DC    CL19'LIST OF ODD NUMBERS'                                00108168         
+ 000384 40                           165 BLNKLNE2 DC    C' '             USED FOR PRINTING BLANK LINES           00108276         
+ 000385 F0                           166 ODDLINE  DC    C'0'             STORAGE FOR NUMBERS IN A LINE           00108376         
+1                                                                                                               PAGE    4         
+0  LOC  OBJECT CODE    ADDR1 ADDR2  STMT   SOURCE STATEMENT                                                                       
+ 000386                              167          DS    12C                                                      00108476         
+ 000392                              168          DS    12C                                                      00108576         
+ 00039E                              169          DS    12C                                                      00108676         
+ 0003AA                              170          DS    12C                                                      00108776         
+ 0003B6                              171          DS    12C                                                      00108876         
+ 0003C2                              172          DS    12C                                                      00108976         
+ 0003D0                              173 ODDSAVE  DS    7F               REGISTER SAVER                          00109076         
+                                     174          END MAIN                                                       00109149         
+0***  NO   STATEMENTS FLAGGED -  NO   WARNINGS,  NO   ERRORS                                                                      
+0*** DYNAMIC CORE AREA USED:  LOW:   10756 HIGH:    1188 LEAVING:  481624 FREE BYTES. AVERAGE:       68 BYTES/STMT ***            
+0*** ASSEMBLY TIME =    0.001 SECS,   175000 STATEMENTS/SEC ***                                                                   
+0*** PROGRAM EXECUTION BEGINNING - ANY OUTPUT BEFORE EXECUTION TIME MESSAGE IS PRODUCED BY USER PROGRAM ***                       
+1                            LIST OF NUMBERS                                                                                      
+                                                                                                                                  
+0      -26924          29          97        3290         355                                                                     
+0          74        -350        -724           7         -37                                                                     
+0          53       -8909          21          46          13                                                                     
+0         591          10          26       -1869       -6299                                                                     
+0           3         333      -15141         868         662                                                                     
+0         859        -529          35        -288       -8942                                                                     
+0       27446       -6729           6        3548         -84                                                                     
+0        -840      -13931       32439       -5537          82                                                                     
+0         833          58        3977       22386       20537                                                                     
+0        7595       -4350        -374          21         -65                                                                     
+0        4734          18        -788       -3728       22483                                                                     
+0         310         514       18935       -5249                                                                                 
+1                                LIST OF ODD NUMBERS                                                                              
+                                                                                                                                  
+0          29          97         355           7         -37          53                                                         
+0       -8909          21          13         591       -1869       -6299                                                         
+0           3         333      -15141         859        -529          35                                                         
+0       -6729      -13931       32439       -5537         833        3977                                                         
+0       20537        7595          21         -65       22483       18935                                                         
+0       -5249                                                                                                                     
+0*** EXECUTION TIME =    0.002 SECS.      2087 INSTRUCTIONS EXECUTED -  1043500 INSTRUCTIONS/SEC ***                              
+0*** AM004 - NORMAL USER TERMINATION BY RETURN ***                                                                                

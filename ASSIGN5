@@ -1,0 +1,197 @@
+//KC03F22A JOB ,'KEVIN KANG',MSGCLASS=H                                 00010000
+//STEP1 EXEC PGM=ASSIST                                                 00011000
+//STEPLIB DD DSN=KC02293.ASSIST.LOADLIB,DISP=SHR                        00012000
+//SYSPRINT DD SYSOUT=*                                                  00013000
+//SYSIN DD *                                                            00014000
+************************************************                        00015000
+*ASSIGN5                                                                00020083
+*                                                                       00030000
+*NAME: KEVIN KANG                                                       00040000
+*                                                                       00050000
+*REGISTER USAGE                                                         00060000
+*                                                                       00070000
+*  1    ADDRESS OF PRAMETER LIST FOR SUBROUTINES                        00071099
+*  2    ADDRESS OF NEXT AVAILIBLE MEMORY                                00072099
+*  3    HOLDS DIVS FOR PROCESSING AND REPLACING                         00073099
+*  4    HOLDS HOWMANYS FOR PROCESSING                                   00074099
+* 12    BASE REGISTER                                                   00079099
+* 13    ADDRESS OF LOCAL SAVE DATA                                      00079199
+* 14    ADDRESS FOR RETURNING TO CALLING                                00079299
+* 15    ADDRESS OF SUBROUTINE ITSELF                                    00079399
+************************************************                        00080000
+MAIN     CSECT                                                          00081000
+         STM   14,12,12(13)     SAVES ALL THE REGISTERS EXCEPT 13       00081199
+         LR    12,15            PUTS THE ADDRESS OF MAIN IN REG 12      00081299
+         USING MAIN,12          SETS 12 AS THE BASE REGISTER            00081399
+         LA    14,MAINSAVE      POINTS REG 14 TO AN AREA IN BUILD MEM   00081499
+         ST    13,4(,14)        SETS UP BACKWARD POINTER                00081599
+         ST    14,8(,13)        SETS UP FORWARD POINTER                 00081699
+         LR    13,14            POINTS 13-14 IN CASE ANOTHER FUNCTION   00081799
+         LA    1,BLIST          LOADING PARAMETER LIST FOR BUILD        00083099
+         L     15,=V(BUILD)     MAKES VIRTUAL                           00085099
+         BALR  14,15            GO TO BUILD SUBROUTINE                  00090083
+         XPRNT TCONT,15         PRINT TABLE CONTENT TITLE               00090299
+         LA    1,PLIST          LOADING PARAMETER LIST FOR PRINT        00090399
+         L     15,=V(PRINT)     MAKE VIRTUAL                            00090499
+         BALR  14,15            GO TO PRINT SUBROUTINE                  00090599
+***********CHANGING PARAMETERS TO D1 AND H1**************               00090699
+         L     2,NEXTMEM        ADDRESS OF EOT HOLDING D1,H1,D2...      00090799
+         L     3,4(2)           LOAD D1                                 00090899
+         ST    3,DIV            STORE INTO DIV                          00090999
+         XDECO 3,MULT           FORMAT FOR PRINTING                     00091099
+         XPRNT MTITLE,27        PRINT TITLE LINE                        00091199
+         L     4,8(2)           LOAD H1                                 00091299
+         ST    4,HOWMANY        STORE INTO HOWMANY                      00091399
+         LA    1,PLIST          LOAD PARAMETER LIST ADDRESS             00091499
+         BALR  14,15            GO TO PRINT SUBROUTINE                  00091699
+***********CHANGING PARAMETERS TO D2 AND H2**************               00091799
+         L     3,12(2)          LOAD D2                                 00091999
+         ST    3,DIV            STORE INTO DIV                          00092099
+         XDECO 3,MULT           FORMAT FOR PRINTING                     00092199
+         XPRNT MTITLE,27        PRINT TITLE LINE                        00092299
+         L     4,16(2)          LOAD H2                                 00092399
+         ST    4,HOWMANY        STORE INTO HOWMANY                      00092499
+         LA    1,PLIST          LOAD PARAMETER LIST ADDRESS             00092599
+         BALR  14,15            GO TO PRINT SUBROUTINE                  00092699
+***********CHANGING PARAMETERS TO D3 AND H3**************               00092799
+         L     3,20(2)          LOAD D3                                 00092999
+         ST    3,DIV            STORE INTO DIV                          00093099
+         XDECO 3,MULT           FORMAT FOR PRINTING                     00093199
+         XPRNT MTITLE,27        PRINT TITLE LINE                        00093299
+         L     4,24(2)          LOAD H3                                 00093399
+         ST    4,HOWMANY        STORE INTO HOWMANY                      00093499
+         LA    1,PLIST          LOAD PARAMETER LIST ADDRESS             00093599
+         BALR  14,15            GO TO PRINT SUBROUTINE                  00093699
+***********RESTORING ORIGINAL REGS AND EXITING***********               00093799
+         L     13,4(13)         LOAD OLD REG FROM SAVE AREA             00093899
+         LM    14,12,12(13)     RELOAD REGISTERS                        00093999
+         BR    14               END PROGRAM                             00094049
+         LTORG                                                          00094176
+MAINSAVE DS    18F                                                      00094293
+BUFFER   DS    80C              INPUT BUFF                              00094399
+         DC    C'*'             XDECI STOPPER                           00094499
+TCONT    DC    C'1'                                                     00094599
+         DC    CL14'TABLE CONTENTS'                                     00094699
+MTITLE   DC    C'1'                                                     00094799
+         DC    CL14'MULTIPLES OF  '                                     00094899
+MULT     DS    12C                                                      00094999
+DIV      DC    F'1'             FOR PRINTING ONLY MULTIPLES OF THIS     00095099
+HOWMANY  DC    F'5'             NUMBER OF ITERMS PER LINE               00095199
+BLIST    DC    A(BUFFER,TABLE,NEXTMEM)      BUILD PARAM LIST            00095299
+PLIST    DC    A(TABLE,NEXTMEM,DIV,HOWMANY) PRINT PARAM LIST            00095399
+NEXTMEM  DC    A(ENDTABLE)      NEXT AVAILIBLE MEMORY ADDRESS           00095499
+TABLE    DC    75F'-64'         TABLE                                   00095599
+ENDTABLE DS    0H                                                       00095699
+*************** BUILD SUBROUTINE ***************                        00095771
+*  BUILDS TABLE FROM DATA                                               00095871
+*                                                                       00095971
+*  REGISTER USAGE                                                       00096071
+*   1  ADDRESS OF PARAMETER LIST A(BUFFER,TABLE,NEXTMEM)                00096199
+*   2  ADDRESS OF BUFFER                                                00096299
+*   3  ADDRESS OF TABLE                                                 00096399
+*   4  ADDRESS OF NEXT AVAILIBLE MEM                                    00096499
+*   5  VAL READ FROM INPUT                                              00096599
+*   6  COUNTER FOR READING LAST 3 LINES OF D AND H                      00096699
+*  12  BASE REGISTER                                                    00096799
+*  13  ADDRESS OF LOCAL SAVE DATA                                       00096899
+*  14  ADDRESS FOR RETURNING TO CALLING                                 00096999
+*  15  ADDRESS OF SUBROUTINE ITSELF                                     00097099
+************************************************                        00097172
+BUILD    CSECT                                                          00097283
+         STM   14,12,12(13)     SAVES ALL THE REGISTERS EXCEPT 13       00097399
+         LR    12,15            PUTS THE ADDRESS OF BUILD IN REG 12     00097499
+         USING BUILD,12         SETS 12 AS THE BASE REGISTER            00097599
+         LA    14,BLDSAVE       POINTS REG 14 TO AN AREA IN BUILD MEM   00097699
+         ST    13,4(14)         SETS UP BACKWARD POINTER                00097799
+         ST    14,8(13)         SETS UP FORWARD POINTER                 00097899
+         LR    13,14            POINTS 13-14 IN CASE ANOTHER FUNCTION   00097999
+         LM    2,4,0(1)         LOAD THE PARAMETER LIST                 00098099
+READLOOP XREAD 0(2),80          READ LINE INTO BUFFER                   00098199
+         XDECI 5,0(2)           PRIMING READ OF FIRST NUMBER            00098299
+XDECLOOP BC    B'0001',READLOOP IF XDECI HAD AN ERROR GO NEW LINE       00098399
+         C     5,=F'-44444444'  LOOK FOR DELIMITER                      00098499
+         BE    STOREDH          GO TO STORE D AND H                     00098599
+         ST    5,0(3)           STORE VAL INTO TABLE                    00098699
+         A     3,=F'4'          MOVE TABLE ADDRESS TO NEXT FULLWORD     00098799
+         XDECI 5,0(1)           READ NEXT VALUE                         00098899
+         B     XDECLOOP         RESTART XDECI READ LOOP FOR A LINE      00098972
+STOREDH  ST    3,0(4)           MOVE NEXT AVAILIBLE MEM TO TABLE END    00099099
+         L     4,0(4)           LOAD ADDRESS OF NEXT AVAILIBLE MEM      00099199
+         L     6,=F'3'          FOR READING NEXT 3 LINES                00099299
+SLOOP    XREAD 0(2),80          READ NEXT LINE                          00099399
+         XDECI 5,0(2)           READ DIV                                00099499
+         ST    5,4(4)           STORE DIV                               00099599
+         XDECI 5,0(1)           READ HOWMANY                            00099699
+         ST    5,8(4)           STORE HOWMANY                           00099799
+         A     4,=F'8'          INCREMENT ADDRESS                       00099899
+         BCT   6,SLOOP          CONTINUE FOR 3 LINES                    00099999
+         L     13,4(13)         LOAD OLD REG FROM SAVE AREA             00100099
+         LM    14,12,12(13)     RELOAD REGISTERS                        00101099
+         BR    14               FINISH SUBROUTINE RETURN MAIN CODE      00101199
+         LTORG                                                          00101276
+BLDSAVE  DS    18F                                                      00101395
+*************** PRINT SUBROUTINE ***************                        00101472
+*  PRINTS ALL VALUES FROM A TABLE, 5 PER LINE                           00101572
+*                                                                       00101672
+*  REGISTER USAGE                                                       00101772
+*   1  ADDRESS OF PARAMETER LIST A(TABLE,NEXTMEM,DIV,HOWMANY)           00101899
+*   2  ADDRESS OF TABLE                                                 00101972
+*   3  ADDRESS OF FULLWORD CONTAINING ADDRESS OF NEXT AVAILIBLE MEMORY  00102099
+*   4  ADDRESS OF DIV                                                   00102199
+*   5  ADDRESS OF WHERE TO STORE NUMBER FOR PRINTING                    00102272
+*   6  COUNTER FOR NUM ITEMS ON A LINE                                  00102372
+*  12  BASE REGISTER                                                    00102499
+*  13  ADDRESS OF LOCAL SAVE DATA                                       00102599
+*  14  ADDRESS FOR RETURNING TO CALLING                                 00102699
+*  15  ADDRESS OF SUBROUTINE ITSELF                                     00102799
+************************************************                        00102872
+PRINT    CSECT                                                          00102997
+         STM   14,12,12(13)     SAVES ALL THE REGISTERS EXCEPT 13       00103099
+         LR    12,15            PUTS THE ADDRESS OF PRINT IN REG 12     00103199
+         USING PRINT,12         SETS 12 AS THE BASE REGISTER            00103299
+         LA    14,PRNTSAVE      POINTS REG 14 TO AN AREA IN BUILD MEM   00103399
+         ST    13,4(,14)        SETS UP BACKWARD POINTER                00103499
+         ST    14,8(,13)        SETS UP FORWARD POINTER                 00103599
+         LR    13,14            POINTS 13-14 IN CASE ANOTHER FUNCTION   00103699
+         LM    2,5,0(1)         LOAD PARAMTER LIST                      00103799
+LINELOOP SR    6,6              SET LINE ITEM COUNT TO 0                00103899
+         LA    7,LISTNUM+1      LOAD ADDR OF FIRST LINE ITEM            00104099
+NUMLOOP  C     2,0(3)           CHECK IF END OF TABLE                   00104199
+         BE    NUMEND           IF YES GO PRINT LINE                    00104299
+         C     6,0(5)           CHECK IF LINE COUNT = HOWMANY           00104399
+         BE    NUMEND                                                   00104499
+         L     9,0(2)           GET A NUMBER                            00104599
+         M     8,=F'1'          CREATE 64 BIT NUM                       00104699
+         D     8,0(4)           FIND MULTIPLE OF DIV                    00104799
+         C     8,=F'0'          CHECK IF NO REMAINDER                   00104899
+         BC    B'0110',NOTMULT  BRANCH IF NOT MULTIPLE                  00104999
+         L     9,0(2)           RELOAD NUMBER                           00105099
+         XDECO 9,0(7)           STORE NUMBER                            00105199
+         A     7,=F'12'         INCREMENT TO NEXT TABLE VALUE           00105299
+         A     6,=F'1'          INCREMENT TO NEXT LINE ITEM ADDRESS     00105399
+NOTMULT  A     2,=F'4'          CONTINUE ITEM PRINT LOOP                00105499
+         B     NUMLOOP                                                  00105599
+NUMEND   XPRNT LISTNUM,85       END OF LOOP, PRINT LINE                 00105699
+         MVI   LISTNUM+1,C' '             BLANK OUT LINE WITH SPACES    00105799
+         MVC   LISTNUM+2(83),LISTNUM+1                                  00105899
+         C     2,0(3)           CHECK IF EOT                            00105999
+         BE    LINEEND          IF END OF TABLE END LINE                00106099
+         B     LINELOOP         GO UP TO MAKE NEXT LINE                 00106154
+LINEEND  L     13,4(13)         LOAD OLD REG FROM SAVE AREA             00106299
+         LM    14,12,12(13)     RELOAD REGISTERS                        00106399
+         BR    14               FINISH SUBROUTINE RETURN MAIN CODE      00106497
+         LTORG                                                          00106576
+PRNTSAVE DS    18F                                                      00106697
+LISTNUM  DC    C'0'             STORAGE FOR NUMBERS IN A LINE           00106797
+         DC    12C' '                                                   00106899
+         DC    12C' '                                                   00106999
+         DC    12C' '                                                   00107099
+         DC    12C' '                                                   00107199
+         DC    12C' '                                                   00107299
+         DC    12C' '                                                   00107399
+         DC    12C' '                                                   00108099
+         END MAIN                                                       00109149
+/*                                                                      00109262
+//FT05F001   DD  DSN=KC02314.SUMMER18.CSCI360.HW5DATA,DISP=SHR          00109384
+//FT06F001   DD SYSOUT=*                                                00109462
+//                                                                      00110062

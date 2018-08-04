@@ -1,0 +1,415 @@
+//KC03F22A JOB ,'KEVIN KANG',MSGCLASS=H                                 00010000
+//STEP1 EXEC PGM=ASSIST                                                 00011000
+//STEPLIB DD DSN=KC02293.ASSIST.LOADLIB,DISP=SHR                        00012000
+//SYSPRINT DD SYSOUT=*                                                  00013000
+//SYSIN DD *                                                            00014000
+************************************************                        00015000
+*ASSIGN7                                                                00020099
+*                                                                       00030000
+*NAME: KEVIN KANG                                                       00040000
+*                                                                       00050000
+*REGISTER USAGE                                                         00060000
+*                                                                       00070000
+*  1    ADDRESS OF PRAMETER LIST FOR SUBROUTINES                        00071099
+* 12    BASE REGISTER                                                   00079099
+* 14    ADDRESS FOR RETURNING TO CALLING                                00079299
+* 15    ADDRESS OF SUBROUTINE ITSELF                                    00079399
+************************************************                        00080000
+MAIN     CSECT                                                          00081000
+         LR    12,15            PUTS THE ADDRESS OF MAIN IN REG 12      00081299
+         USING MAIN,12          SETS 12 AS THE BASE REGISTER            00081399
+         ST    14,MAINSAVE      SAVE REG 14 FOR EXITING                 00081499
+         LA    1,BLIST          LOADING PARAMETER LIST FOR BUILD        00083099
+         L     15,=V(BUILD)     MAKES VIRTUAL                           00085099
+         BALR  14,15            GO TO BUILD SUBROUTINE                  00090099
+         LA    1,PLIST          LOADING PARAMETER LIST FOR FIRST PRINT  00090399
+         L     15,=V(PRINT)     MAKE VIRTUAL                            00090499
+         BALR  14,15            GO TO PRINT SUBROUTINE                  00090599
+         LA    1,TLIST          LOADING PARAMETER LIST FOR TALLY        00090699
+         L     15,=V(TRANS)     MAKE VIRTUAL                            00090799
+         BALR  14,15            GO TO PRINT SUBROUTINE                  00090899
+         MVC   HEAD,=CL24'TABLE AFTER TRANSACTIONS'    LOAD NEW TITLE   00090999
+         LA    1,PLIST          LOADING PARAMETER LIST FOR SECOND PRINT 00092099
+         L     15,=V(PRINT)     MAKE VIRTUAL                            00093099
+         BALR  14,15            GO TO PRINT SUBROUTINE                  00093199
+***********RESTORING ORIGINAL REGS AND EXITING***********               00093799
+         L     14,MAINSAVE      LOAD 14 FOR EXITING                     00094099
+         BR    14               END PROGRAM                             00094149
+         LTORG                                                          00094276
+MAINSAVE DS    F                MAIN REG SAVER                          00094399
+BUFFER   DS    80C              INPUT BUFFER                            00094499
+PCOUNT   DC    X'010F'          COUNT PAGES                             00095299
+BLIST    DC    A(BUFFER,TABLE,EOT)        BUILD PARAM LIST              00095399
+PLIST    DC    A(TABLE,EOT,PCOUNT,HEAD)    PRINT PARAM LIST             00095499
+TLIST    DC    A(BUFFER,TABLE,EOT,PCOUNT)        TALLY PARAM LIST       00095599
+HEAD     DC    CL24'INITIAL TABLE CONTENTS'                             00095699
+EOT      DC    A(ENDTABLE)      EOT ADDRESS                             00095799
+         ORG   MAIN+((*-MAIN+31)/32)*32    PUTS ON 16BYTE BOUNDARY      00095899
+TABLE    DS    50CL32           TABLE OF 32 BYTE ENTRIES                00095999
+ENDTABLE DS    0H                                                       00096099
+$ENTRY   DSECT                  DUMMY TABLE                             00096199
+$ID      DS    F                                                        00096299
+$LNAME   DS    12C                                                      00096399
+$FNAME   DS    10C                                                      00096499
+$SCORE1  DS    PL2                                                      00096599
+$SCORE2  DS    PL2                                                      00096699
+$SCORE3  DS    PL2                                                      00096799
+*************** BUILD SUBROUTINE ***************                        00096871
+*  BUILDS TABLE FROM DATA                                               00096971
+*                                                                       00097071
+*  REGISTER USAGE                                                       00097171
+*   1  ADDRESS OF PARAMETER LIST                                        00097299
+*        ADDRESS OF FOUND CHAR BY TRT                                   00097399
+*   2  TRT LAST BYTE FOUND                                              00097499
+*   3  ADDRESS OF BUFFER                                                00097599
+*   4  ADDRESS OF TABLE                                                 00097699
+*   5  ADDRESS OF EOT                                                   00097799
+*   6  HOLDS ID                                                         00097899
+*   7  ADDERSS OF BEGINNING OF WORD FROM TRT                            00097999
+*   8  ADDERSS OF ENDING OF WORD FROM TRT                               00098099
+*        LENGTH OF WORD                                                 00098199
+*   9  COUNTER FOR LAST 3 NUMS READ LOOP                                00098299
+*  12  BASE REGISTER                                                    00098399
+*  13  ADDRESS OF LOCAL SAVE DATA                                       00098499
+*  14  ADDRESS FOR RETURNING TO CALLING                                 00098599
+*  15  ADDRESS OF SUBROUTINE ITSELF                                     00098699
+************************************************                        00098772
+BUILD    CSECT                                                          00098883
+         STM   14,12,12(13)     SAVES ALL THE REGISTERS EXCEPT 13       00098999
+         LR    12,15            PUTS THE ADDRESS OF BUILD IN REG 12     00099099
+         USING BUILD,12         SETS 12 AS THE BASE REGISTER            00099199
+         LA    14,BLDSAVE       POINTS REG 14 TO AN AREA IN BUILD MEM   00099299
+         ST    13,4(14)         SETS UP BACKWARD POINTER                00099399
+         ST    14,8(13)         SETS UP FORWARD POINTER                 00099499
+         LR    13,14            POINTS 13-14 IN CASE ANOTHER FUNCTION   00099599
+         LM    3,5,0(1)         LOAD THE PARAMETER LIST                 00099699
+         USING $ENTRY,4         ATTACH DUMMY                            00099799
+READLOOP XREAD 0(3),80          READ LINE INTO BUFFER                   00099899
+         BC    B'0100',READEND  EOF                                     00099999
+         PACK  TEMP(8),0(8,3)   PACK ID NUMBER FROM BUFFER              00100099
+         CVB   6,TEMP           CONVERT TO BINARY                       00100199
+         C     6,=F'0'          CHECK IF ID IS 0                        00100299
+         BE    READEND          IF SO STOP READING                      00100399
+         ST    6,$ID            STORE ID AS FULLWORD                    00100499
+*                               FIND AND STORE FIRST NAME               00100599
+         TRT   8(15,3),NSPACES  SEARCH FOR FIRST CHAR                   00100699
+         LR    7,1              ADDRESS OF FIRST NONSPACE CHAR          00100799
+         TRT   0(10,1),SPACES   LOOK FOR SPACES                         00100899
+         LR    8,1              ADDRESS OF END OF WORD                  00100999
+         SR    8,7              1 = LENGTH OF STR                       00101099
+         BCTR  8,0              CORRECT THE LEGNTH                      00101199
+         EX    8,MVFIRST        EXECUTE MVC INTO TABLE                  00101299
+         TR    $FNAME(1),UPPERT       UPPER CASE FIRST CHAR             00101399
+         TR    $FNAME+1(9),LOWERT     LOWER CASE REST OF NAME           00101499
+*                                                                       00101599
+         TRT   0(15,1),NSPACES  FIND AND STORE LAST NAME                00101699
+         LR    7,1              SAME AS ABOVE                           00101799
+         TRT   0(12,1),SPACES                                           00101899
+         LR    8,1                                                      00101999
+         SR    8,7                                                      00102099
+         BCTR  8,0                                                      00102199
+         EX    8,MVLAST                                                 00102299
+         TR    $LNAME(1),UPPERT                                         00102399
+         TR    $LNAME+1(11),LOWERT                                      00102499
+*                                                                       00102599
+         A     4,=F'26'         MOVE TABLE POINTER TO AFTER NAME        00102699
+         L     9,=F'3'          SET COUNTER FOR NUM READER              00102799
+SCORLOOP TRT   0(15,1),NSPACES  FIND NONSPACE                           00102899
+         LR    7,1              STORE BEGINNING ADDRESS                 00102999
+         TRT   0(9,1),SPACES    FIND ADDRESSS OF NEXT SPACE             00103099
+         LR    8,1              STORE ENDING ADDRESS                    00103199
+         SR    8,7                                                      00103299
+         BCTR  8,0                                                      00103399
+         EX    8,MYPACK         EXECUTE PACK WITH LENGTH FROM REG 8     00103499
+         A     4,=F'2'          MOVE TABLE POINTER                      00103599
+         BCT   9,SCORLOOP       IF COUNTER NOT = 0 CONTINUE LOOP        00103699
+         B     READLOOP         CONTINUE READ LOOP                      00104099
+READEND  ST    4,0(5)           STORE EOT ADDRESS                       00104199
+         DROP  4                DETACH DSECT                            00104299
+         L     13,4(13)         LOAD OLD REG FROM SAVE AREA             00104399
+         LM    14,12,12(13)     RELOAD REGISTERS                        00104499
+         BR    14               FINISH SUBROUTINE RETURN MAIN CODE      00104599
+         LTORG                                                          00104699
+BLDSAVE  DS    18F              BUILD REG SAVE AREA                     00104799
+TEMP     DS    D                TEMP ON DOUBLEWORD FOR ID               00104899
+MVFIRST  MVC   16(0,4),0(7)     MOVE FIRST NAME                         00105199
+MVLAST   MVC   4(0,4),0(7)      MOVE LAST NMME                          00105299
+MYPACK   PACK  0(2,4),0(0,7)    PACK NUMS                               00105399
+*                                                                       00105499
+SPACES   DC    256X'00'         SPACES SEARCH TABLE                     00105599
+         ORG   SPACES+X'40'                                             00105699
+         DC    X'01'                                                    00105799
+         ORG                                                            00105899
+*                                                                       00105999
+NSPACES  DC    256X'01'         NONSPACE SEARCH TABLE                   00106099
+         ORG   NSPACES+X'40'                                            00106199
+         DC    X'00'                                                    00106299
+         ORG                                                            00106399
+*                                                                       00106499
+UPPERT   DC    256X'00'         UPPERCASE TRANSLATE TABLE               00106599
+         ORG   UPPERT+X'81'                LOWER CASE A                 00106699
+         DC    X'C1C2C3C4C5C6C7C8C9'                                    00106799
+         ORG   UPPERT+X'91'                LOWER CASE J                 00106899
+         DC    X'D1D2D3D4D5D6D7D8D9'                                    00106999
+         ORG   UPPERT+X'A2'                LOWER CASE S                 00107099
+         DC    X'E2E3E4E5E6E7E8E9'                                      00107199
+         ORG   UPPERT+C'A'                                              00107299
+         DC    X'C1C2C3C4C5C6C7C8C9'                                    00107399
+         ORG   UPPERT+C'J'                                              00107499
+         DC    X'D1D2D3D4D5D6D7D8D9'                                    00107599
+         ORG   UPPERT+C'S'                                              00107699
+         DC    X'E2E3E4E5E6E7E8E9'                                      00107799
+         ORG                                                            00107899
+*                                                                       00107999
+LOWERT   DC    256X'40'         LOWERCASE TRANSLATE TABLE               00108099
+         ORG   LOWERT+X'81'                LOWER CASE A                 00108199
+         DC    X'818283848586878889'                                    00108299
+         ORG   LOWERT+X'91'                LOWER CASE J                 00108399
+         DC    X'919293949596979899'                                    00108499
+         ORG   LOWERT+X'A2'                LOWER CASE S                 00108599
+         DC    X'A2A3A4A5A6A7A8A9'                                      00108699
+         ORG   LOWERT+C'A'                                              00108799
+         DC    X'818283848586878889'                                    00108899
+         ORG   LOWERT+C'J'                                              00108999
+         DC    X'919293949596979899'                                    00109099
+         ORG   LOWERT+C'S'                                              00109199
+         DC    X'A2A3A4A5A6A7A8A9'                                      00109299
+         ORG                                                            00109399
+*************** PRINT SUBROUTINE ***************                        00109472
+*  PRINTS ALL FORMATTED DATA IN A TABLE 18 RECORDS PER PAGE             00109599
+*                                                                       00109672
+*  REGISTER USAGE                                                       00109772
+*   1  ADDRESS OF PARAMETER LIST                                        00109899
+*   2  ADDRESS OF TABLE                                                 00109972
+*   3  ADDRESS OF EOT                                                   00110099
+*   4  ADDRESS OF PAGE COUNTER                                          00110199
+*   5  ADDRESS OF TITLE                                                 00110299
+*   6  COUNTER FOR LINES IN A PAGE                                      00110399
+*   7  HOLDS ID                                                         00110499
+*  12  BASE REGISTER                                                    00110599
+*  13  ADDRESS OF LOCAL SAVE DATA                                       00110699
+*  14  ADDRESS FOR RETURNING TO CALLING                                 00110799
+*  15  ADDRESS OF SUBROUTINE ITSELF                                     00111099
+************************************************                        00120072
+PRINT    CSECT                                                          00121099
+         STM   14,12,12(13)     SAVES ALL THE REGISTERS EXCEPT 13       00122099
+         LR    12,15            PUTS THE ADDRESS OF BUILD IN REG 12     00122199
+         USING PRINT,12         SETS 12 AS THE BASE REGISTER            00122299
+         LA    14,PRNTSAVE      POINTS REG 14 TO AN AREA IN BUILD MEM   00122399
+         ST    13,4(14)         SETS UP BACKWARD POINTER                00122499
+         ST    14,8(13)         SETS UP FORWARD POINTER                 00122599
+         LR    13,14            POINTS 13-14 IN CASE ANOTHER FUNCTION   00122699
+         LM    2,5,0(1)         LOAD THE PARAMETER LIST                 00122799
+         USING $ENTRY,2         ATTACH DUMMY                            00122899
+         L     3,0(3)           LOAD EOT                                00122999
+         MVC   TITLE(24),0(5)   PLACE TITLE INTO TITLE LINE             00123099
+PLOOP1   SR    6,6              RESET LINE COUNTER                      00123199
+         UNPK  PAGENUM(2),0(2,4)        STORE PAGE NUM FOR PRINTING     00123299
+         XPRNT PAGETITL,71              PRINT TITLE                     00123399
+         XPRNT LABELS,71                PRINT LABELS                    00123499
+         AP    0(2,4),=X'010F'          INCREMENT PAGE COUNTER          00123599
+PLOOP2   CR    2,3             CHECK EOT                                00123699
+         BE    PEND1           IF EOT FINISHED PRINTING                 00123799
+         C     6,=F'18'        CHECK LINE COUNTER                       00123899
+         BE    PEND2           IF 18 LINES, NEW PAGE                    00123999
+         L     7,$ID           LOAD ID                                  00124099
+         CVD   7,TEMP2         PACK ID                                  00124199
+         MVC   IDOUT(10),=X'40212020202020202020'   SET MASK FOR ID     00124299
+         ED    IDOUT(10),TEMP2+3          EDIT ID OUT                   00124399
+         MVC   LASTOUT(12),$LNAME         MOVE LAST NAME TO LINE        00124599
+         MVC   FIRSTOUT(10),$FNAME        MOVE FIRST NAME TO LINE       00124699
+         MVC   SCOR1OUT(4),=X'40202020'                                 00124799
+         ED    SCOR1OUT(4),$SCORE1        EDIT SCORE 1 OUT              00124899
+         MVC   SCOR2OUT(4),=X'40202020'                                 00124999
+         ED    SCOR2OUT(4),$SCORE2        EDIT SCORE 2 OUT              00125099
+         MVC   SCOR3OUT(4),=X'40202020'                                 00125199
+         ED    SCOR3OUT(4),$SCORE3        EDIT SCORE 3 OUT              00125299
+         A     2,=F'32'                   INCREMENT TABLE POINTER       00125399
+         A     6,=F'1'                    INCREMENT LINE COUNT          00125499
+         XPRNT LINE,71                    PRINT LINE                    00125599
+         B     PLOOP2                     CONTINUE LINE LOOP            00125699
+PEND2    XPRNT =C' ',1          PRINT BLANK LINE                        00125899
+         B     PLOOP1           GO UP TO MAKE NEXT PAGE                 00125999
+PEND1    L     13,4(13)         LOAD OLD REG FROM SAVE AREA             00126099
+         LM    14,12,12(13)     RELOAD REGISTERS                        00126199
+         DROP  2                DETACH DSECT                            00126299
+         BR    14               FINISH SUBROUTINE RETURN MAIN CODE      00126399
+         LTORG                                                          00126499
+PRNTSAVE DS    18F              PRINT REG SAVE AREA                     00126599
+TEMP2    DS    D                DOUBLEWORD FOR ID                       00126699
+PAGETITL DC    C'1'             PAGE TITLE LINE                         00126799
+         DC    24C' '                                                   00126899
+TITLE    DS    24C                                                      00126999
+         DC    14C' '                                                   00127099
+         DC    CL7'PAGE   '                                             00127199
+PAGENUM  DS    2C                                                       00127299
+LABELS   DC    C'-'             LABLEL LINE                             00127399
+         DC    CL12' ID NUMBER  '                                       00127499
+         DC    CL15'LAST NAME      '                                    00127599
+         DC    CL14'FIRST NAME    '                                     00127699
+         DC    CL11'SCORE 1    '                                        00127799
+         DC    CL11'SCORE 2    '                                        00127899
+         DC    CL7'SCORE 3'                                             00127999
+LINE     DC    C'0'             LINE                                    00128099
+IDOUT    DS    CL10             ID NUMBER                               00128199
+         DC    2C' '                                                    00128299
+LASTOUT  DS    CL12             LAST NAME                               00128399
+         DC    3C' '                                                    00128499
+FIRSTOUT DS    CL10             FIRST NAME                              00128599
+         DC    5C' '                                                    00128699
+SCOR1OUT DS    CL4              SCORE 1                                 00128799
+         DC    7C' '                                                    00128899
+SCOR2OUT DS    CL4              SCORE 2                                 00128999
+         DC    7C' '                                                    00129099
+SCOR3OUT DS    CL4              SCORE 3                                 00129199
+         DC    2C' '                                                    00129399
+*************** TRANS SUBROUTINE ***************                        00129499
+*  READS MORE DATA AND DOES SOME TRANSACTIONS                           00129599
+*                                                                       00129699
+*  REGISTER USAGE                                                       00129799
+*   1  ADDRESS OF PARAMETER LIST                                        00129899
+*   3  ADDRESS OF BUFFER                                                00129999
+*   4  ADDRESS OF TABLE                                                 00130099
+*   5  ADDRESS OF EOT                                                   00130199
+*   6  ADDRESS OF PAGE COUNTER                                          00130299
+*   7  HOLDS READ ID                                                    00130399
+*   8  ADDERSS OF LOWEST SCORE FOR A PERSON                             00130499
+*   9  ADDRESS TO BEGINNING OF TABLE                                    00130599
+*  12  BASE REGISTER                                                    00130699
+*  13  ADDRESS OF LOCAL SAVE DATA                                       00130799
+*  14  ADDRESS FOR RETURNING TO CALLING                                 00130899
+*  15  ADDRESS OF SUBROUTINE ITSELF                                     00130999
+************************************************                        00131099
+TRANS    CSECT                                                          00131199
+         STM   14,12,12(13)     SAVES ALL THE REGISTERS EXCEPT 13       00131299
+         LR    12,15            PUTS THE ADDRESS OF BUILD IN REG 12     00131399
+         USING TRANS,12         SETS 12 AS THE BASE REGISTER            00131499
+         LA    14,TRANSAVE      POINTS REG 14 TO AN AREA IN BUILD MEM   00131599
+         ST    13,4(14)         SETS UP BACKWARD POINTER                00131699
+         ST    14,8(13)         SETS UP FORWARD POINTER                 00131799
+         LR    13,14            POINTS 13-14 IN CASE ANOTHER FUNCTION   00131899
+         LM    3,6,0(1)         LOAD THE PARAMETER LIST                 00131999
+         USING $ENTRY,4         ATTACH DUMMY                            00132099
+         L     5,0(5)           LOAD EOT                                00132199
+         LR    9,4              SAVE TABLE START ADDRESS                00132299
+         UNPK  TRANPAGE(2),0(2,6)        STORE PAGE NUM FOR PRINTING    00132399
+         XPRNT TRANTITL,71               PRINT TITLE                    00132499
+         AP    0(2,6),=X'010F'           INCREMENT PAGE COUNT           00132599
+TRANLOOP XREAD 0(3),80          READ LINE INTO BUFFER                   00132699
+         BC    B'0100',TRANEND  EOF                                     00132799
+         PACK  TEMP3(8),0(8,3)  PACK ID NUMBER FROM BUFFER              00132899
+         MVC   IDOUT2(10),=X'40212020202020202020'                      00132999
+         ED    IDOUT2(10),TEMP3+3     EDIT ID FOR PRINTING              00133099
+         CVB   7,TEMP3          CONVERT TO BINARY AND STORE             00133199
+         MVC   TYPE(1),9(3)     MOVE TRANSACTION TYPE                   00133299
+*                                                                       00133399
+         LR    4,9              SAVE BEGINNING OF TABLE ADDRESS         00133499
+         CLI   TYPE,C'S'        LOOK FOR STATISTIC TYPE                 00133599
+         BNE   LOOK4N           IF NOT GO LOOK FOR NEW SCORE            00133699
+         MVC   TYPEOUT(10),=C'STATISTICS'     BUILD OUT LINE            00133799
+STATLOOP CR    4,5              COMEPARE FOR END OF TABLE               00133899
+         BE    NOFOUND          IF EQUAL ID NOT FOUND                   00133999
+         C     7,$ID            COMPARE READ ID TO TABLE ID             00134099
+         BE    STATPRNT         PRINT A STATISTIC LINE                  00134199
+         A     4,=F'32'         NEXT ENTRY                              00134299
+         B     STATLOOP         CONTINUE THROUGH TABLE                  00134399
+STATPRNT ZAP   AVG(3),$SCORE1(2)   ADD TO AVERAGE                       00134499
+         AP    AVG(3),$SCORE2(2)                                        00134599
+         AP    AVG(3),$SCORE3(2)                                        00134699
+         DP    AVG(3),=PL1'3'      AVERAGE 3 SCORES                     00134799
+         MVC   AVGOUT(4),=X'40202020'                                   00134899
+         ED    AVGOUT(4),AVG            EDIT AVERAGE TO LINE            00134999
+         ZAP   HIGHSCOR(2),$SCORE1(2)   LOOK FOR HIGH SCORE             00135099
+         CP    HIGHSCOR(2),$SCORE2(2)                                   00135199
+         BH    SKIP1                                                    00135299
+         ZAP   HIGHSCOR(2),$SCORE2(2)   STORE NEW NUM IF HIGHER         00135399
+SKIP1    CP    HIGHSCOR(2),$SCORE3(2)                                   00135499
+         BH    SKIP2                                                    00135599
+         ZAP   HIGHSCOR(2),$SCORE3(2)                                   00135699
+SKIP2    MVC   HIGHOUT(4),=X'40202020'                                  00135799
+         ED    HIGHOUT(4),HIGHSCOR      EDIT OUT HIGHEST                00135899
+         XPRNT TRANLINE,71              PRINT STATISTIC LINE            00135999
+         B     TRANLOOP                 COUNTINUE TRAN READ LOOP        00136099
+LOOK4N   CLI   TYPE,C'N'                LOOK FOR NEW SCORE TYPE         00136199
+         BNE   INVALID                  IF NOT, INVALID TYPE            00136299
+NEWSLOOP CR    4,5                      COMEPARE FOR END OF TABLE       00136399
+         BE    NOFOUND                  IF EQUAL ID NOT FOUND           00136499
+         C     7,$ID                    COMPARE READ ID TO TABLE ID     00136599
+         BE    NEWSPRNT                 PRINT A NEW SCORE LINE          00136699
+         A     4,=F'32'                 NEXT ENTRY                      00136799
+         B     NEWSLOOP                 CONTINUE THROUGH TABLE          00136899
+NEWSPRNT MVC   TYPEOUT(10),=C'NEW SCORE '   FORMAT LINE                 00136999
+         MVC   HILABEL(31),=C'SCORE =                        '          00137099
+         PACK  NEWSCORE(2),11(3,3)         PACK READ NEW SCORE          00137199
+         MVC   HIGHOUT(4),=X'40202020'                                  00137299
+         ED    HIGHOUT(4),NEWSCORE         REUSING LABEL, NEW SCORE     00137399
+         LA    8,$SCORE1                   LOAD ADDRESS OF SCORE 1      00137499
+         CP    0(2,8),$SCORE2(2)           COMPARE SCORE 1 AND 2        00137599
+         BL    SKIP3                       LOOK FOR LOWEST              00137699
+         LA    8,$SCORE2                   LOAD 2 IF SMALLER            00137799
+SKIP3    CP    0(2,8),$SCORE3(2)                                        00137899
+         BL    SKIP4                                                    00137999
+         LA    8,$SCORE3                                                00138099
+SKIP4    CP    0(2,8),NEWSCORE(2)          COMPARE LOWEST TO NEW SCORE  00138199
+         BNH   SKIP5                                                    00138299
+         MVC   AVGLABEL(9),=C'NO CHANGE'   ADD NO CHANGE IF HIGHER      00138399
+         B     SKIP6                       SKIP SWAP IF HIGHER          00138499
+SKIP5    ZAP   0(2,8),NEWSCORE(2)          SWAP IF LOWER                00138599
+SKIP6    XPRNT TRANLINE,71                 PRINT NEW SCORE LINE         00138699
+         MVC   HILABEL(26),RESET           RESET LINE                   00138799
+         B     TRANLOOP                    CONTINUE TRAN LOOP           00138899
+NOFOUND  MVC   HILABEL(32),NF              ID NOT FOUND PRINT ROUTINE   00138999
+         XPRNT TRANLINE,71                                              00139099
+         MVC   HILABEL(26),RESET                                        00139199
+         B     TRANLOOP                    CONTINUE TRAN LOOP           00139299
+INVALID  MVC   ERRID(10),IDOUT2            INVALID TYPE PRINT ROUTINE   00139399
+         MVC   ERRLETT(1),TYPE                                          00139499
+         XPRNT ERRLINE,71                                               00139599
+         B     TRANLOOP                    CONTINUE TRAN LOOP           00139699
+TRANEND  L     13,4(13)         LOAD OLD REG FROM SAVE AREA             00139799
+         LM    14,12,12(13)     RELOAD REGISTERS                        00139899
+         DROP  4                DETACH DSECT                            00139999
+         BR    14               FINISH SUBROUTINE RETURN MAIN CODE      00140099
+         LTORG                                                          00140199
+TRANSAVE DS    18F              PRINT REG SAVE AREA                     00140299
+TEMP3    DS    D                STORAGE FOR ID                          00140399
+TYPE     DS    C                STORAGE FOR TRANSACTION TYPE            00140499
+NF       DC    CL12'ID NOT FOUND'   NOT FOUND STRING                    00140599
+         DC    20C' '                                                   00140699
+RESET    DC    CL26'HIGH =           AVERAGE ='                         00140799
+HIGHSCOR DS    PL2              HIGH SCORE OF A PERSON FOR STATISTICS   00140899
+AVG      DS    PL3              AVERAGE SCORE FOR A PERSON              00140999
+NEWSCORE DS    PL2              NEW SCORE                               00141099
+TRANTITL DC    C'1'             TRANSACTION TITLE LINE                  00141199
+         DC    23C' '                                                   00141299
+         DC    CL23'RESULTS OF TRANSACTIONS'                            00141399
+         DC    16C' '                                                   00141499
+         DC    CL7'PAGE   '                                             00141599
+TRANPAGE DS    2C               PAGE NUM                                00141699
+TRANLINE DC    C'0'             TRANSACTION LINE                        00141799
+         DC    CL4'ID ='                                                00141899
+IDOUT2   DS    10C              ID NUMBER                               00141999
+         DC    CL3' '                                                   00142099
+         DC    CL7'TYPE = '                                             00142199
+TYPEOUT  DS    10C              TYPE OF TRANSACTION                     00142299
+         DC    4C' '                                                    00142399
+HILABEL  DC    CL8'HIGH =  '                                            00142499
+HIGHOUT  DS    4C               HIGHEST OF 3 SCORES                     00142599
+         DC    5C' '                                                    00142699
+AVGLABEL DC    CL10'AVERAGE = '                                         00142799
+AVGOUT   DS    4C               AVERAGE OF SCORES                       00142899
+         DC    4C' '                                                    00142999
+ERRLINE  DC    C'0'             INVALID TRANSACTION LINE                00143099
+         DC    CL4'ID ='                                                00143199
+ERRID    DS    10C                                                      00143299
+         DC    CL3' '                                                   00143399
+         DC    CL14'TRANS. CODE = '                                     00143499
+ERRLETT  DS    C                                                        00143599
+         DC    6C' '                                                    00143699
+         DC    CL24'INVALID TRANSACTION CODE'                           00143799
+         DC    8C' '                                                    00143899
+         END MAIN                                                       00143999
+/*                                                                      00144062
+//FT05F001   DD  DSN=KC02314.SUMMER18.CSCI360.HW7DATA,DISP=SHR          00144199
+//FT06F001   DD SYSOUT=*                                                00145062
+//                                                                      00150062
